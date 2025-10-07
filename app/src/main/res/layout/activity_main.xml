@@ -40,6 +40,43 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
+    <TextView
+        android:id="@+id/tvLogTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/log_title"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:layout_constraintTop_toBottomOf="@id/progress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:textStyle="bold"/>
+
+    <ScrollView
+        android:id="@+id/scrollLog"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tvLogTitle"
+        app:layout_constraintBottom_toTopOf="@id/btnBoost"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="16dp"
+        android:background="@android:color/black">
+
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/log_placeholder"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+    </ScrollView>
+
     <Button
         android:id="@+id/btnBoost"
         android:layout_width="0dp"

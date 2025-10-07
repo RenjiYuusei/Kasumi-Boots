@@ -1,12 +1,16 @@
 #!/system/bin/sh
-# Cloud Phone Tool - Root Boost Script (resource name compliant)
-# See comments in boost.sh variant; this file is used by the app via R.raw.boost
+# KasumiBoots - Performance Boost Script
+# Logs every step for user visibility
 
 # Helpers (best-effort writes)
 w() { f="$1"; shift; [ -f "$f" ] && echo "$@" > "$f" 2>/dev/null || true; }
 has_token() { echo "$1" | tr ' ' '\n' | grep -q "^$2$"; }
 ONLINE_CPUS=$(cat /sys/devices/system/cpu/online 2>/dev/null || echo "")
 
+echo "[KasumiBoots] === Bắt đầu tối ưu ==="
+echo "• CPU online: $ONLINE_CPUS"
+
+echo "• Bật toàn bộ CPU core..."
 # Bring all CPU cores online
 for d in /sys/devices/system/cpu/cpu[1-9]*; do
   [ -d "$d" ] || continue
@@ -14,6 +18,7 @@ for d in /sys/devices/system/cpu/cpu[1-9]*; do
   if [ -f "$f" ]; then echo 1 > "$f" 2>/dev/null || true; fi
 done
 
+echo "• Đặt CPU governor = performance & max freq..."
 # CPU performance governor & max freq
 for d in /sys/devices/system/cpu/cpu[0-9]*; do
   [ -d "$d" ] || continue
@@ -35,12 +40,14 @@ for p in /sys/devices/system/cpu/cpufreq/policy*; do
   fi
 done
 
+echo "• Tối ưu GPU (KGSL/devfreq)..."
 # GPU performance governor (KGSL)
 if [ -d /sys/class/kgsl/kgsl-3d0/devfreq ]; then
   echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor 2>/dev/null || true
   if [ -f /sys/class/kgsl/kgsl-3d0/devfreq/max_freq ] && [ -f /sys/class/kgsl/kgsl-3d0/devfreq/min_freq ]; then
     cat /sys/class/kgsl/kgsl-3d0/devfreq/max_freq > /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 2>/dev/null || true
   fi
+  echo "  ✓ KGSL perf mode"
 fi
 
 # Generic devfreq GPUs (Mali/others)
@@ -49,12 +56,16 @@ for d in /sys/class/devfreq/*; do
   gov="$d/governor"
   name=$(basename "$d")
   echo "$name" | grep -iq "gpu" || continue
-  if [ -f "$gov" ]; then echo performance > "$gov" 2>/dev/null || true; fi
+  if [ -f "$gov" ]; then
+    echo performance > "$gov" 2>/dev/null || true
+    echo "  ✓ GPU $name perf"
+  fi
   if [ -f "$d/max_freq" ] && [ -f "$d/min_freq" ]; then
     cat "$d/max_freq" > "$d/min_freq" 2>/dev/null || true
   fi
 done
 
+echo "• Mở rộng cpuset (top-app/foreground)..."
 # Expand cpuset for app classes (all CPUs)
 if [ -n "$ONLINE_CPUS" ]; then
   for c in /dev/cpuset/top-app/cpus /dev/cpuset/foreground/cpus /dev/cpuset/system-background/cpus; do
@@ -62,32 +73,43 @@ if [ -n "$ONLINE_CPUS" ]; then
   done
 fi
 
+echo "• Chế độ hiệu năng cố định..."
 # Fixed performance mode (best-effort)
 cmd power set-fixed-performance-mode-enabled true 2>/dev/null || true
 
+echo "• Tối ưu I/O scheduler (mq-deadline/deadline)..."
 # I/O scheduler: prefer mq-deadline if available
 for b in /sys/block/*; do
   sched="$b/queue/scheduler"
   [ -f "$sched" ] || continue
   cur=$(cat "$sched" 2>/dev/null || echo "")
-  echo "$cur" | grep -q "mq-deadline" && echo mq-deadline > "$sched" 2>/dev/null && continue
-  echo "$cur" | grep -q "deadline" && echo deadline > "$sched" 2>/dev/null && continue
+  if echo "$cur" | grep -q "mq-deadline"; then
+    echo mq-deadline > "$sched" 2>/dev/null && echo "  ✓ $(basename $b) => mq-deadline"
+    continue
+  fi
+  if echo "$cur" | grep -q "deadline"; then
+    echo deadline > "$sched" 2>/dev/null && echo "  ✓ $(basename $b) => deadline"
+    continue
+  fi
   echo "$cur" | grep -q "noop" && echo noop > "$sched" 2>/dev/null || true
 done
 
+echo "• Tinh chỉnh VM (swappiness, dirty ratio)..."
 # VM tunables (best-effort)
 [ -f /proc/sys/vm/swappiness ] && echo 10 > /proc/sys/vm/swappiness 2>/dev/null || true
 [ -f /proc/sys/vm/dirty_ratio ] && echo 10 > /proc/sys/vm/dirty_ratio 2>/dev/null || true
 [ -f /proc/sys/vm/dirty_background_ratio ] && echo 5 > /proc/sys/vm/dirty_background_ratio 2>/dev/null || true
 
+echo "• Dọn cache & kill app nền..."
 # Free caches & kill cached apps (best-effort)
 sync
 echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 cmd activity kill-all 2>/dev/null || am kill-all 2>/dev/null || true
 
+echo "• Tắt tiết kiệm pin..."
 # Disable battery saver if on
 settings put global low_power 0 2>/dev/null || true
 
 # Marker
-echo "[KasumiBoots] boost applied"
+echo "[KasumiBoots] === Hoàn tất tối ưu ==="
 

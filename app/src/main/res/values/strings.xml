@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">KasumiBoots</string>
-    <string name="boost_now">Boost Now</string>
-    <string name="status_root_granted">Root granted</string>
-    <string name="status_root_denied">Root denied or unavailable</string>
-    <string name="status_boosting">Boosting…</string>
-    <string name="status_done">Boost applied</string>
+    <string name="boost_now">Tăng Hiệu Suất</string>
+    <string name="status_root_granted">Đã cấp quyền Root</string>
+    <string name="status_root_denied">Chưa có quyền Root hoặc bị từ chối</string>
+    <string name="status_boosting">Đang tối ưu…</string>
+    <string name="status_done">Hoàn tất tăng hiệu suất</string>
+    <string name="status_failed">Lỗi tăng hiệu suất (kiểm tra root)</string>
+    <string name="log_title">Nhật ký chi tiết</string>
+    <string name="log_placeholder">Nhật ký sẽ hiển thị ở đây…</string>
 </resources>
