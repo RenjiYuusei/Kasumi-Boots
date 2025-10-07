@@ -1,0 +1,93 @@
+#!/system/bin/sh
+# Cloud Phone Tool - Root Boost Script (resource name compliant)
+# See comments in boost.sh variant; this file is used by the app via R.raw.boost
+
+# Helpers (best-effort writes)
+w() { f="$1"; shift; [ -f "$f" ] && echo "$@" > "$f" 2>/dev/null || true; }
+has_token() { echo "$1" | tr ' ' '\n' | grep -q "^$2$"; }
+ONLINE_CPUS=$(cat /sys/devices/system/cpu/online 2>/dev/null || echo "")
+
+# Bring all CPU cores online
+for d in /sys/devices/system/cpu/cpu[1-9]*; do
+  [ -d "$d" ] || continue
+  f="$d/online"
+  if [ -f "$f" ]; then echo 1 > "$f" 2>/dev/null || true; fi
+done
+
+# CPU performance governor & max freq
+for d in /sys/devices/system/cpu/cpu[0-9]*; do
+  [ -d "$d" ] || continue
+  gov="$d/cpufreq/scaling_governor"
+  if [ -f "$gov" ]; then echo performance > "$gov" 2>/dev/null || true; fi
+  maxf="$d/cpufreq/scaling_max_freq"; info_max="$d/cpufreq/cpuinfo_max_freq"
+  if [ -f "$maxf" ] && [ -f "$info_max" ]; then cat "$info_max" > "$maxf" 2>/dev/null || true; fi
+  minf="$d/cpufreq/scaling_min_freq"
+  if [ -f "$minf" ] && [ -f "$info_max" ]; then cat "$info_max" > "$minf" 2>/dev/null || true; fi
+done
+
+# Also apply to policy* (newer kernels)
+for p in /sys/devices/system/cpu/cpufreq/policy*; do
+  [ -d "$p" ] || continue
+  w "$p/scaling_governor" performance
+  if [ -f "$p/cpuinfo_max_freq" ]; then
+    cat "$p/cpuinfo_max_freq" | tee "$p/scaling_max_freq" >/dev/null 2>&1 || true
+    cat "$p/cpuinfo_max_freq" | tee "$p/scaling_min_freq" >/dev/null 2>&1 || true
+  fi
+done
+
+# GPU performance governor (KGSL)
+if [ -d /sys/class/kgsl/kgsl-3d0/devfreq ]; then
+  echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor 2>/dev/null || true
+  if [ -f /sys/class/kgsl/kgsl-3d0/devfreq/max_freq ] && [ -f /sys/class/kgsl/kgsl-3d0/devfreq/min_freq ]; then
+    cat /sys/class/kgsl/kgsl-3d0/devfreq/max_freq > /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 2>/dev/null || true
+  fi
+fi
+
+# Generic devfreq GPUs (Mali/others)
+for d in /sys/class/devfreq/*; do
+  [ -d "$d" ] || continue
+  gov="$d/governor"
+  name=$(basename "$d")
+  echo "$name" | grep -iq "gpu" || continue
+  if [ -f "$gov" ]; then echo performance > "$gov" 2>/dev/null || true; fi
+  if [ -f "$d/max_freq" ] && [ -f "$d/min_freq" ]; then
+    cat "$d/max_freq" > "$d/min_freq" 2>/dev/null || true
+  fi
+done
+
+# Expand cpuset for app classes (all CPUs)
+if [ -n "$ONLINE_CPUS" ]; then
+  for c in /dev/cpuset/top-app/cpus /dev/cpuset/foreground/cpus /dev/cpuset/system-background/cpus; do
+    [ -f "$c" ] && echo "$ONLINE_CPUS" > "$c" 2>/dev/null || true
+  done
+fi
+
+# Fixed performance mode (best-effort)
+cmd power set-fixed-performance-mode-enabled true 2>/dev/null || true
+
+# I/O scheduler: prefer mq-deadline if available
+for b in /sys/block/*; do
+  sched="$b/queue/scheduler"
+  [ -f "$sched" ] || continue
+  cur=$(cat "$sched" 2>/dev/null || echo "")
+  echo "$cur" | grep -q "mq-deadline" && echo mq-deadline > "$sched" 2>/dev/null && continue
+  echo "$cur" | grep -q "deadline" && echo deadline > "$sched" 2>/dev/null && continue
+  echo "$cur" | grep -q "noop" && echo noop > "$sched" 2>/dev/null || true
+done
+
+# VM tunables (best-effort)
+[ -f /proc/sys/vm/swappiness ] && echo 10 > /proc/sys/vm/swappiness 2>/dev/null || true
+[ -f /proc/sys/vm/dirty_ratio ] && echo 10 > /proc/sys/vm/dirty_ratio 2>/dev/null || true
+[ -f /proc/sys/vm/dirty_background_ratio ] && echo 5 > /proc/sys/vm/dirty_background_ratio 2>/dev/null || true
+
+# Free caches & kill cached apps (best-effort)
+sync
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
+cmd activity kill-all 2>/dev/null || am kill-all 2>/dev/null || true
+
+# Disable battery saver if on
+settings put global low_power 0 2>/dev/null || true
+
+# Marker
+echo "[KasumiBoots] boost applied"
+
