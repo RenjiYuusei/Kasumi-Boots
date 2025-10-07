@@ -16,13 +16,14 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
+            android:text="Kasumi Boots"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="8dp"/>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStatus"
@@ -47,7 +48,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/status_checking"
                     android:gravity="center"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                     android:textStyle="bold"/>
 
                 <ProgressBar
@@ -65,8 +66,9 @@
                     android:layout_height="wrap_content"
                     android:text="@string/boost_description"
                     android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                    android:gravity="center"/>
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:gravity="center"
+                    android:lineSpacingExtra="2dp"/>
 
             </LinearLayout>
 
@@ -125,14 +127,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/boost_now"
-            android:textSize="16sp"
-            android:paddingVertical="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingVertical="18dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:cornerRadius="12dp"
+            app:cornerRadius="16dp"
             app:icon="@android:drawable/ic_media_play"
-            app:iconGravity="textStart"/>
+            app:iconGravity="textStart"
+            app:iconSize="24dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
