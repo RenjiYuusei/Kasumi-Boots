@@ -6,8 +6,8 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.card.MaterialCardView
 import com.kasumi.boots.R
+import com.kasumi.boots.core.BoostExecutor
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -161,84 +161,56 @@ class MainActivity : AppCompatActivity() {
     
     private fun performBoost() {
         tvStatus.text = "🚀 Đang Boost..."
-        appendLog("[2/2] Bắt đầu chạy script boost...")
+        appendLog("[2/2] Bắt đầu tối ưu hóa hệ thống...")
         appendLog("")
         
         mainScope.launch {
             try {
+                val executor = BoostExecutor()
                 val result = withContext(Dispatchers.IO) {
-                    withTimeout(90000) { // 90s timeout for script
-                        appendLog("⏳ Thực thi script (có thể mất 30-60 giây)...")
+                    withTimeout(90000) { // 90s timeout
+                        appendLog("⏳ Thực thi tối ưu hóa (có thể mất 30-60 giây)...")
                         appendLog("")
-                        Log.d("KasumiBoots", "Executing boost script")
+                        Log.d("KasumiBoots", "Executing boost optimization")
                         
-                        // Execute boost script with stdout redirect for realtime output
-                        val scriptResult = Shell.cmd(resources.openRawResource(R.raw.boost)).exec()
-                        Log.d("KasumiBoots", "Script completed: ${scriptResult.isSuccess}, code: ${scriptResult.code}")
-                        scriptResult
+                        // Execute boost directly (no script file)
+                        executor.execute { log ->
+                            appendLog(log)
+                        }
                     }
                 }
                 
-                appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                appendLog("   KẾT QUẢ THỰC THI")
-                appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 appendLog("")
-                
-                // Display output with grouping
-                if (result.isSuccess) {
-                    if (result.out.isEmpty()) {
-                        appendLog("⚠ Script chạy nhưng không có output")
-                    } else {
-                        var lineCount = 0
-                        result.out.forEach { line ->
-                            if (line.isNotBlank()) {
-                                appendLog(line)
-                                lineCount++
-                            }
-                        }
-                        appendLog("")
-                        appendLog("→ Đã xử lý $lineCount dòng output")
-                    }
-                    
-                    if (result.err.isNotEmpty()) {
-                        appendLog("")
-                        appendLog("━━━ Warnings ━━━")
-                        result.err.take(10).forEach { line ->
-                            if (line.isNotBlank()) appendLog("⚠ $line")
-                        }
-                        if (result.err.size > 10) {
-                            appendLog("... và ${result.err.size - 10} dòng nữa")
-                        }
-                    }
-                    
-                    appendLog("")
-                    appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                    appendLog("   ✓ HOÀN TẤT - Hiệu suất tối đa!")
+                appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                if (result.success) {
+                    appendLog("   ✓ HOÀN TẤT BOOST")
                     appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     tvStatus.text = "✓ Hoàn Tất"
-                } else {
-                    appendLog("✗ Script thất bại (exit code: ${result.code})")
-                    appendLog("")
-                    result.out.take(20).forEach { line ->
-                        if (line.isNotBlank()) appendLog(line)
-                    }
-                    if (result.err.isNotEmpty()) {
+                    
+                    if (result.errors.isNotEmpty()) {
                         appendLog("")
-                        appendLog("━━━ Errors ━━━")
-                        result.err.take(10).forEach { line ->
-                            appendLog("❌ $line")
-                        }
+                        appendLog("⚠ Có ${result.errors.size} cảnh báo nhỏ (không ảnh hưởng)")
                     }
+                } else {
+                    appendLog("   ✗ THẤT BẠI")
+                    appendLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     tvStatus.text = "❌ Thất Bại"
+                    
+                    if (result.errors.isNotEmpty()) {
+                        appendLog("")
+                        appendLog("Lỗi: ${result.errors.joinToString(", ")}")
+                    }
                 }
+                
+                Log.d("KasumiBoots", "Boost completed: ${result.success}")
                 
             } catch (e: TimeoutCancellationException) {
                 appendLog("")
-                appendLog("✗ TIMEOUT: Script chạy quá 90 giây")
+                appendLog("✗ TIMEOUT: Tối ưu hóa chạy quá 90 giây")
                 appendLog("")
                 appendLog("Điều này bất thường - kiểm tra thiết bị")
                 tvStatus.text = "⏱ Timeout"
-                Log.e("KasumiBoots", "Script timeout")
+                Log.e("KasumiBoots", "Boost timeout")
             } catch (e: Exception) {
                 appendLog("")
                 appendLog("❌ LỖI: ${e.message ?: "Unknown"}")
@@ -246,7 +218,7 @@ class MainActivity : AppCompatActivity() {
                 val stack = e.stackTraceToString().take(300)
                 appendLog("Debug: $stack")
                 tvStatus.text = "❌ Lỗi"
-                Log.e("KasumiBoots", "Script error", e)
+                Log.e("KasumiBoots", "Boost error", e)
             } finally {
                 appendLog("")
                 progress.visibility = View.GONE

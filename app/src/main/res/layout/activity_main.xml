@@ -5,14 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#000000"
+    android:background="@drawable/gradient_background"
     tools:context="com.kasumi.boots.ui.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="#000000">
+        android:padding="20dp">
 
         <LinearLayout
             android:id="@+id/headerLayout"
@@ -23,28 +22,35 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="16dp"
+            android:paddingVertical="8dp">
             
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="⚡ KASUMI BOOTS"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="#FFFFFF"
+                android:shadowColor="#FF00FF"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="15"
                 android:gravity="start|center_vertical"/>
             
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDiscord"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="42dp"
                 android:text="Discord"
-                android:textSize="12sp"
-                android:paddingHorizontal="12dp"
-                app:cornerRadius="20dp"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="16dp"
+                app:cornerRadius="21dp"
                 app:backgroundTint="#5865F2"
                 android:textColor="#FFFFFF"
+                app:elevation="4dp"
                 style="@style/Widget.MaterialComponents.Button"/>
                 
         </LinearLayout>
@@ -56,16 +62,17 @@
             app:layout_constraintTop_toBottomOf="@id/headerLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"
-            app:cardElevation="8dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="#1E1E1E">
+            android:layout_marginTop="24dp"
+            app:cardElevation="12dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@drawable/card_gradient">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="24dp"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/tvStatus"
@@ -73,30 +80,35 @@
                     android:layout_height="wrap_content"
                     android:text="@string/status_checking"
                     android:gravity="center"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                    android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary"/>
+                    android:textColor="#00FFD1"
+                    android:shadowColor="#00FFD1"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="10"/>
 
                 <ProgressBar
                     android:id="@+id/progress"
                     style="@android:style/Widget.Material.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="16dp"
                     android:visibility="gone"
                     android:indeterminate="true"
-                    android:indeterminateTint="?attr/colorSecondary"/>
+                    android:indeterminateTint="#FF00FF"/>
 
                 <TextView
                     android:id="@+id/tvDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/boost_description"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:layout_marginTop="12dp"
+                    android:textSize="14sp"
                     android:gravity="center"
-                    android:lineSpacingExtra="2dp"
-                    android:textColor="#B0B0B0"/>
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="#D0D0D0"
+                    android:alpha="0.9"/>
 
             </LinearLayout>
 
@@ -110,11 +122,11 @@
             app:layout_constraintBottom_toTopOf="@id/btnBoost"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardElevation="8dp"
-            app:cardCornerRadius="16dp"
-            app:cardBackgroundColor="#1E1E1E">
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            app:cardElevation="10dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@drawable/log_card_gradient">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -125,11 +137,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/log_title"
-                    android:padding="12dp"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:padding="16dp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="#000000"
-                    android:background="?attr/colorPrimary"/>
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/log_header_gradient"/>
 
                 <ScrollView
                     android:layout_width="match_parent"
@@ -141,12 +153,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/log_empty"
-                        android:padding="12dp"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                        android:textColor="#E1E1E1"
+                        android:padding="16dp"
+                        android:textSize="13sp"
+                        android:textColor="#00FF88"
                         android:fontFamily="monospace"
                         android:textIsSelectable="true"
-                        android:background="#0A0A0A"/>
+                        android:lineSpacingExtra="2dp"
+                        android:background="#0D0D0D"/>
 
                 </ScrollView>
 
@@ -159,19 +172,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/boost_now"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:paddingVertical="20dp"
+            android:paddingVertical="24dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:cornerRadius="16dp"
+            app:cornerRadius="24dp"
             app:icon="@android:drawable/ic_media_play"
             app:iconGravity="textStart"
-            app:iconSize="28dp"
-            app:backgroundTint="?attr/colorPrimary"
-            android:textColor="#000000"
-            app:elevation="8dp"/>
+            app:iconSize="32dp"
+            app:backgroundTint="@drawable/button_gradient"
+            android:textColor="#FFFFFF"
+            android:shadowColor="#FF00FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="8"
+            app:elevation="12dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
