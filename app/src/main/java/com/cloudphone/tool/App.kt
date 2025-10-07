@@ -1,7 +1,8 @@
-package com.cloudphone.tool
+package com.kasumi.boots
 
 import android.app.Application
 import com.topjohnwu.superuser.Shell
+import com.kasumi.boots.BuildConfig
 
 class App : Application() {
     override fun onCreate() {

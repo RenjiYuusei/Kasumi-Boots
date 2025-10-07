@@ -1,10 +1,10 @@
-package com.cloudphone.tool.ui
+package com.kasumi.boots.ui
 
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.cloudphone.tool.R
-import com.cloudphone.tool.databinding.ActivityMainBinding
+import com.kasumi.boots.R
+import com.kasumi.boots.databinding.ActivityMainBinding
 import com.topjohnwu.superuser.Shell
 
 class MainActivity : AppCompatActivity() {
