@@ -12,6 +12,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
     
@@ -38,25 +39,59 @@ class MainActivity : AppCompatActivity() {
         btnBoost = findViewById(R.id.btnBoost)
         progress = findViewById(R.id.progress)
         
-        // Lazy check root only when user taps Boost
-        tvStatus.text = getString(R.string.status_checking)
+        // Set initial status
+        tvStatus.text = "Sẵn sàng tăng tốc"
+        appendLog("Kasumi Boots khởi động thành công")
+        appendLog("Bấm nút bên dưới để bắt đầu")
 
         btnBoost.setOnClickListener {
+            if (!btnBoost.isEnabled) return@setOnClickListener
+            
+            btnBoost.isEnabled = false
+            progress.visibility = View.VISIBLE
+            tvStatus.text = "Đang kiểm tra quyền root..."
+            appendLog("\n=== Bắt đầu quá trình boost ===")
+            
             mainScope.launch {
-                val hasRoot = withContext(Dispatchers.IO) {
-                    try {
-                        obtainShell().isRoot
-                    } catch (e: Exception) {
-                        appendLog("EXCEPTION: ${e.message}")
-                        false
+                try {
+                    appendLog("Đang yêu cầu shell root...")
+                    
+                    val hasRoot = withContext(Dispatchers.IO) {
+                        withTimeout(10000) { // 10s timeout
+                            try {
+                                val shell = obtainShell()
+                                Log.d("KasumiBoots", "Shell obtained: ${shell.isRoot}")
+                                appendLog("Shell đã khởi tạo: ${if (shell.isRoot) "ROOT" else "NO ROOT"}")
+                                shell.isRoot
+                            } catch (e: Exception) {
+                                Log.e("KasumiBoots", "Shell error", e)
+                                appendLog("LỖI shell: ${e.message}")
+                                false
+                            }
+                        }
                     }
-                }
-                if (hasRoot) {
-                    tvStatus.text = getString(R.string.status_root_granted)
-                    performBoost()
-                } else {
-                    tvStatus.text = getString(R.string.status_root_denied)
-                    appendLog("Root access denied or unavailable")
+                    
+                    if (hasRoot) {
+                        tvStatus.text = getString(R.string.status_root_granted)
+                        appendLog("✓ Đã có quyền ROOT")
+                        performBoost()
+                    } else {
+                        tvStatus.text = getString(R.string.status_root_denied)
+                        appendLog("✗ Không có quyền ROOT hoặc bị từ chối")
+                        progress.visibility = View.GONE
+                        btnBoost.isEnabled = true
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    tvStatus.text = "Timeout - Thử lại"
+                    appendLog("✗ TIMEOUT: Quá thời gian chờ shell")
+                    progress.visibility = View.GONE
+                    btnBoost.isEnabled = true
+                } catch (e: Exception) {
+                    tvStatus.text = "Lỗi - Thử lại"
+                    appendLog("✗ EXCEPTION: ${e.message}")
+                    Log.e("KasumiBoots", "Root check error", e)
+                    progress.visibility = View.GONE
+                    btnBoost.isEnabled = true
                 }
             }
         }
@@ -91,43 +126,61 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun performBoost() {
-        btnBoost.isEnabled = false
-        progress.visibility = View.VISIBLE
         tvStatus.text = getString(R.string.status_boosting)
-        tvLog.text = ""
+        appendLog("\n--- Bắt đầu chạy script boost ---")
         
         mainScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    // Execute boost script safely from InputStream (recommended by libsu)
-                    Shell.cmd(resources.openRawResource(R.raw.boost)).exec()
+                    withTimeout(60000) { // 60s timeout for script
+                        appendLog("Đang thực thi script...")
+                        Log.d("KasumiBoots", "Executing boost script")
+                        
+                        // Execute boost script safely from InputStream
+                        val scriptResult = Shell.cmd(resources.openRawResource(R.raw.boost)).exec()
+                        Log.d("KasumiBoots", "Script completed: ${scriptResult.isSuccess}")
+                        scriptResult
+                    }
                 }
                 
-                // Display output
+                appendLog("\n--- Kết quả thực thi ---")
+                
+                // Display output line by line for better UX
                 if (result.isSuccess) {
-                    result.out.forEach { line ->
-                        appendLog(line)
+                    if (result.out.isEmpty()) {
+                        appendLog("⚠ Không có output từ script")
+                    } else {
+                        result.out.forEach { line ->
+                            appendLog(line)
+                        }
                     }
                     
                     if (result.err.isNotEmpty()) {
-                        appendLog("\n--- Errors ---")
+                        appendLog("\n--- Warnings/Errors ---")
                         result.err.forEach { line ->
                             appendLog(line)
                         }
                     }
                     
                     tvStatus.text = getString(R.string.status_done)
+                    appendLog("\n✓ HOÀN TẤT!")
                 } else {
-                    appendLog("ERROR: Boost script failed")
+                    appendLog("✗ Script thất bại (code: ${result.code})")
                     result.err.forEach { line ->
                         appendLog(line)
                     }
-                    tvStatus.text = "Failed to apply boost"
+                    tvStatus.text = "Thất bại - Xem log"
                 }
                 
+            } catch (e: TimeoutCancellationException) {
+                appendLog("\n✗ TIMEOUT: Script chạy quá 60 giây")
+                tvStatus.text = "Timeout - Thử lại"
+                Log.e("KasumiBoots", "Script timeout")
             } catch (e: Exception) {
-                appendLog("EXCEPTION: ${e.message}")
-                tvStatus.text = "Error occurred"
+                appendLog("\n✗ EXCEPTION: ${e.message}")
+                appendLog("Stack: ${e.stackTraceToString().take(500)}")
+                tvStatus.text = "Lỗi - Xem log"
+                Log.e("KasumiBoots", "Script error", e)
             } finally {
                 progress.visibility = View.GONE
                 btnBoost.isEnabled = true
@@ -136,9 +189,18 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun appendLog(text: String) {
-        runOnUiThread {
+        mainScope.launch(Dispatchers.Main.immediate) {
             val current = tvLog.text.toString()
-            tvLog.text = if (current.isEmpty()) text else "$current\n$text"
+            val newText = if (current.isEmpty()) text else "$current\n$text"
+            tvLog.text = newText
+            
+            // Auto scroll to bottom
+            tvLog.post {
+                val scrollView = tvLog.parent as? android.widget.ScrollView
+                scrollView?.fullScroll(android.view.View.FOCUS_DOWN)
+            }
+            
+            Log.d("KasumiBoots", "LOG: $text")
         }
     }
 }
