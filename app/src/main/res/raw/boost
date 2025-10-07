@@ -1,13 +1,23 @@
 #!/system/bin/sh
+# Redirect all output immediately (no buffering)
+exec 2>&1
+
 # KasumiBoots - EXTREME Performance Boost for Cloud Phone
 # Discord: https://discord.gg/kasumi
 # Maximum performance - no battery concerns
 
-log() { echo "[KasumiBoots] $@"; }
+log() { echo "[$(date +%H:%M:%S)] $@"; }
 w() { f="$1"; shift; [ -f "$f" ] && echo "$@" > "$f" 2>/dev/null || true; }
 ONLINE_CPUS=$(cat /sys/devices/system/cpu/online 2>/dev/null || echo "")
 
-log "Starting EXTREME performance boost (Cloud Phone Mode)..."
+# Immediate feedback
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  KASUMI BOOTS v1.0 - Cloud Optimizer"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+log "🚀 Bắt đầu tối ưu hiệu suất..."
+echo ""
 
 # ============================================
 # SECTION 1: CPU MAXIMUM PERFORMANCE
