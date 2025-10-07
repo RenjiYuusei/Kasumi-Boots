@@ -10,6 +10,8 @@ import com.google.android.material.card.MaterialCardView
 import com.kasumi.boots.R
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class MainActivity : AppCompatActivity() {
     
@@ -20,6 +22,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progress: ProgressBar
     
     private val mainScope = CoroutineScope(Dispatchers.Main + Job())
+    
+    private suspend fun obtainShell(): Shell = suspendCancellableCoroutine { cont ->
+        Shell.getShell { shell -> cont.resume(shell) }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,12 +38,27 @@ class MainActivity : AppCompatActivity() {
         btnBoost = findViewById(R.id.btnBoost)
         progress = findViewById(R.id.progress)
         
-        // Check root on start
-        checkRoot()
-        
-        // Set button click listener
+        // Lazy check root only when user taps Boost
+        tvStatus.text = getString(R.string.status_checking)
+
         btnBoost.setOnClickListener {
-            performBoost()
+            mainScope.launch {
+                val hasRoot = withContext(Dispatchers.IO) {
+                    try {
+                        obtainShell().isRoot
+                    } catch (e: Exception) {
+                        appendLog("EXCEPTION: ${e.message}")
+                        false
+                    }
+                }
+                if (hasRoot) {
+                    tvStatus.text = getString(R.string.status_root_granted)
+                    performBoost()
+                } else {
+                    tvStatus.text = getString(R.string.status_root_denied)
+                    appendLog("Root access denied or unavailable")
+                }
+            }
         }
     }
     
@@ -50,17 +71,21 @@ class MainActivity : AppCompatActivity() {
         tvStatus.text = getString(R.string.status_checking)
         
         mainScope.launch {
-            val hasRoot = withContext(Dispatchers.IO) {
-                Shell.getShell().isRoot
-            }
-            
-            if (hasRoot) {
-                tvStatus.text = getString(R.string.status_root_granted)
-                btnBoost.isEnabled = true
-            } else {
+            try {
+                val shell = withContext(Dispatchers.IO) { obtainShell() }
+                val hasRoot = shell.isRoot
+                if (hasRoot) {
+                    tvStatus.text = getString(R.string.status_root_granted)
+                    btnBoost.isEnabled = true
+                } else {
+                    tvStatus.text = getString(R.string.status_root_denied)
+                    btnBoost.isEnabled = false
+                    appendLog("ERROR: Root access denied or unavailable")
+                }
+            } catch (e: Exception) {
                 tvStatus.text = getString(R.string.status_root_denied)
                 btnBoost.isEnabled = false
-                appendLog("ERROR: Root access denied or unavailable")
+                appendLog("EXCEPTION: ${e.message}")
             }
         }
     }
@@ -74,13 +99,8 @@ class MainActivity : AppCompatActivity() {
         mainScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    // Read boost script from raw resources
-                    val scriptContent = resources.openRawResource(R.raw.boost)
-                        .bufferedReader()
-                        .use { it.readText() }
-                    
-                    // Execute boost script
-                    Shell.cmd(scriptContent).exec()
+                    // Execute boost script safely from InputStream (recommended by libsu)
+                    Shell.cmd(resources.openRawResource(R.raw.boost)).exec()
                 }
                 
                 // Display output

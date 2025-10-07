@@ -37,7 +37,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled True
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -68,8 +68,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    // Coroutines (aligned with Kotlin 2.1.x)
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
 
     def libsuVersion = '6.0.0'
     implementation "com.github.topjohnwu.libsu:core:${libsuVersion}"

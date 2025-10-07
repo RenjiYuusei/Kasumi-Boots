@@ -99,7 +99,7 @@
                     android:padding="12dp"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                     android:textStyle="bold"
-                    android:background="?attr/colorPrimaryContainer"/>
+                    android:background="?attr/colorPrimary"/>
 
                 <ScrollView
                     android:layout_width="match_parent"

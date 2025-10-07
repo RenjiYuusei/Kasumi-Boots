@@ -278,7 +278,7 @@ log "✓ Cleanup completed"
 # ============================================
 log ""
 log "╔═══════════════════════════════════════════╗"
-log "║   KASUMI BOOTS - HIỆU SUẤT CỰC ĐẠI       ║"
+log "║              KASUMI BOOTS                 ║"
 log "╚═══════════════════════════════════════════╝"
 log "✓ CPU/GPU: Locked MAX freq | Thermal: OFF"
 log "✓ I/O: Performance | RAM: No swap"
