@@ -13,65 +13,58 @@
         android:layout_height="wrap_content"
         android:padding="20dp">
 
-        <LinearLayout
-            android:id="@+id/headerLayout"
+        <TextView
+            android:id="@+id/headerTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:text="⚡ KASUMI BOOTS"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:shadowColor="#FF00FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="12"
+            android:gravity="center"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"
-            android:paddingVertical="8dp">
-            
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="⚡ KASUMI BOOTS"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:shadowColor="#FF00FF"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="15"
-                android:gravity="start|center_vertical"/>
-            
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDiscord"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:text="Discord"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:paddingHorizontal="16dp"
-                app:cornerRadius="21dp"
-                app:backgroundTint="#5865F2"
-                android:textColor="#FFFFFF"
-                app:elevation="4dp"
-                style="@style/Widget.MaterialComponents.Button"/>
-                
-        </LinearLayout>
+            android:layout_marginTop="12dp"/>
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDiscord"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Discord"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="20dp"
+            app:cornerRadius="18dp"
+            app:backgroundTint="#5865F2"
+            android:textColor="#FFFFFF"
+            app:elevation="4dp"
+            app:layout_constraintTop_toTopOf="@id/headerTitle"
+            app:layout_constraintBottom_toBottomOf="@id/headerTitle"
+            app:layout_constraintEnd_toEndOf="parent"
+            style="@style/Widget.MaterialComponents.Button"/>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStatus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/headerLayout"
+            app:layout_constraintTop_toBottomOf="@id/headerTitle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="24dp"
-            app:cardElevation="12dp"
-            app:cardCornerRadius="20dp"
+            android:layout_marginTop="16dp"
+            app:cardElevation="8dp"
+            app:cardCornerRadius="16dp"
             app:cardBackgroundColor="@drawable/card_gradient">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp"
+                android:padding="20dp"
                 android:gravity="center">
 
                 <TextView
@@ -80,20 +73,20 @@
                     android:layout_height="wrap_content"
                     android:text="@string/status_checking"
                     android:gravity="center"
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="#00FFD1"
                     android:shadowColor="#00FFD1"
                     android:shadowDx="0"
                     android:shadowDy="0"
-                    android:shadowRadius="10"/>
+                    android:shadowRadius="8"/>
 
                 <ProgressBar
                     android:id="@+id/progress"
                     style="@android:style/Widget.Material.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="6dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_height="4dp"
+                    android:layout_marginTop="12dp"
                     android:visibility="gone"
                     android:indeterminate="true"
                     android:indeterminateTint="#FF00FF"/>
@@ -103,12 +96,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/boost_description"
-                    android:layout_marginTop="12dp"
-                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:textSize="13sp"
                     android:gravity="center"
-                    android:lineSpacingExtra="4dp"
-                    android:textColor="#D0D0D0"
-                    android:alpha="0.9"/>
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="#C0C0C0"
+                    android:alpha="0.85"/>
 
             </LinearLayout>
 
@@ -122,11 +115,11 @@
             app:layout_constraintBottom_toTopOf="@id/btnBoost"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            app:cardElevation="10dp"
-            app:cardCornerRadius="20dp"
-            app:cardBackgroundColor="@drawable/log_card_gradient">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="6dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1A1A1A">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -137,8 +130,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/log_title"
-                    android:padding="16dp"
-                    android:textSize="16sp"
+                    android:padding="12dp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:background="@drawable/log_header_gradient"/>
@@ -153,12 +146,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/log_empty"
-                        android:padding="16dp"
-                        android:textSize="13sp"
+                        android:padding="12dp"
+                        android:textSize="12sp"
                         android:textColor="#00FF88"
                         android:fontFamily="monospace"
                         android:textIsSelectable="true"
-                        android:lineSpacingExtra="2dp"
+                        android:lineSpacingExtra="1dp"
                         android:background="#0D0D0D"/>
 
                 </ScrollView>
@@ -172,23 +165,23 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/boost_now"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:paddingVertical="24dp"
+            android:paddingVertical="20dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:cornerRadius="24dp"
+            app:cornerRadius="20dp"
             app:icon="@android:drawable/ic_media_play"
             app:iconGravity="textStart"
-            app:iconSize="32dp"
+            app:iconSize="28dp"
             app:backgroundTint="@drawable/button_gradient"
             android:textColor="#FFFFFF"
             android:shadowColor="#FF00FF"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="8"
-            app:elevation="12dp"/>
+            android:shadowRadius="6"
+            app:elevation="8dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -26,15 +26,9 @@ class BoostExecutor {
         }
 
         try {
-            log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            log("  KASUMI BOOTS v2.0 - Cloud Optimizer")
-            log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            log("")
-            log("🚀 Bắt đầu tối ưu hóa hiệu suất...")
-            log("")
 
             // SECTION 1: CPU OPTIMIZATION
-            log("🔥 [1/9] CPU Optimization...")
+            log("✓ [1/9] CPU Optimization")
             executeCommands(
                 // Enable all CPU cores
                 "for cpu in /sys/devices/system/cpu/cpu[1-9]*; do [ -d \"\$cpu\" ] && echo 1 > \"\$cpu/online\" 2>/dev/null || true; done",
@@ -57,11 +51,9 @@ class BoostExecutor {
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$p/scaling_min_freq\" 2>/dev/null || true; " +
                         "done"
             )
-            log("✓ CPU locked at maximum frequency")
 
             // SECTION 2: THERMAL CONTROL
-            log("")
-            log("🔥 [2/9] Thermal Control...")
+            log("✓ [2/9] Thermal Control")
             executeCommands(
                 "for t in /sys/class/thermal/thermal_zone*/mode; do [ -f \"\$t\" ] && echo disabled > \"\$t\" 2>/dev/null || true; done",
                 "for t in /sys/class/thermal/thermal_zone*/trip_point_*_temp; do [ -f \"\$t\" ] && echo 999999 > \"\$t\" 2>/dev/null || true; done",
@@ -69,11 +61,9 @@ class BoostExecutor {
                 "stop thermald 2>/dev/null || true",
                 "stop mi_thermald 2>/dev/null || true"
             )
-            log("✓ Thermal throttling disabled")
 
             // SECTION 3: GPU OPTIMIZATION
-            log("")
-            log("🔥 [3/9] GPU Optimization...")
+            log("✓ [3/9] GPU Optimization")
             executeCommands(
                 // KGSL (Adreno)
                 "if [ -d /sys/class/kgsl/kgsl-3d0/devfreq ]; then " +
@@ -95,11 +85,9 @@ class BoostExecutor {
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$d/min_freq\" 2>/dev/null || true; " +
                         "done"
             )
-            log("✓ GPU locked at maximum frequency")
 
             // SECTION 4: CPU SET & SCHEDULING
-            log("")
-            log("🔥 [4/9] CPU Set & Scheduling...")
+            log("✓ [4/9] CPU Set & Scheduling")
             executeCommands(
                 "ONLINE=\$(cat /sys/devices/system/cpu/online 2>/dev/null); " +
                         "[ -n \"\$ONLINE\" ] && for c in /dev/cpuset/*/cpus; do [ -f \"\$c\" ] && echo \$ONLINE > \"\$c\" 2>/dev/null || true; done",
@@ -110,11 +98,9 @@ class BoostExecutor {
                 "echo 128 > /proc/sys/kernel/sched_nr_migrate 2>/dev/null || true",
                 "echo 0 > /proc/sys/kernel/sched_schedstats 2>/dev/null || true"
             )
-            log("✓ CPU scheduling optimized")
 
             // SECTION 5: I/O PERFORMANCE
-            log("")
-            log("🔥 [5/9] I/O Performance...")
+            log("✓ [5/9] I/O Performance")
             executeCommands(
                 "for b in /sys/block/*/queue; do " +
                         "[ -d \"\$b\" ] || continue; " +
@@ -125,11 +111,9 @@ class BoostExecutor {
                         "echo 0 > \"\$b/iostats\" 2>/dev/null || true; " +
                         "done"
             )
-            log("✓ I/O scheduler optimized")
 
             // SECTION 6: MEMORY OPTIMIZATION
-            log("")
-            log("🔥 [6/9] Memory Optimization...")
+            log("✓ [6/9] Memory Optimization")
             executeCommands(
                 "echo 0 > /proc/sys/vm/swappiness 2>/dev/null || true",
                 "echo 30 > /proc/sys/vm/dirty_ratio 2>/dev/null || true",
@@ -138,11 +122,9 @@ class BoostExecutor {
                 "echo 0 > /proc/sys/vm/page-cluster 2>/dev/null || true",
                 "echo 0 > /proc/sys/vm/compaction_proactiveness 2>/dev/null || true"
             )
-            log("✓ Memory tuning applied")
 
             // SECTION 7: POWER SAVING DISABLED
-            log("")
-            log("🔥 [7/9] Disabling Power Saving...")
+            log("✓ [7/9] Power Saving Disabled")
             executeCommands(
                 "cmd power set-fixed-performance-mode-enabled true 2>/dev/null || true",
                 "cmd power set-mode 0 2>/dev/null || true",
@@ -151,11 +133,9 @@ class BoostExecutor {
                 "settings put global forced_app_standby_enabled 0 2>/dev/null || true",
                 "dumpsys deviceidle disable 2>/dev/null || true"
             )
-            log("✓ Power saving features disabled")
 
             // SECTION 8: NETWORK OPTIMIZATION
-            log("")
-            log("🔥 [8/9] Network Tuning...")
+            log("✓ [8/9] Network Tuning")
             executeCommands(
                 "echo 1 > /proc/sys/net/ipv4/tcp_low_latency 2>/dev/null || true",
                 "echo 1 > /proc/sys/net/ipv4/tcp_timestamps 2>/dev/null || true",
@@ -165,11 +145,9 @@ class BoostExecutor {
                 "echo 16777216 > /proc/sys/net/core/rmem_max 2>/dev/null || true",
                 "echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null || true"
             )
-            log("✓ Network optimized")
 
             // SECTION 9: CLEANUP
-            log("")
-            log("🔥 [9/9] Cleanup...")
+            log("✓ [9/9] Cleanup")
             executeCommands(
                 "sync",
                 "echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true",
@@ -177,25 +155,15 @@ class BoostExecutor {
                 "stop perfd 2>/dev/null || true",
                 "stop mpdecision 2>/dev/null || true"
             )
-            log("✓ Cleanup completed")
 
             // SUMMARY
             log("")
-            log("╔═══════════════════════════════════════════╗")
-            log("║          KASUMI BOOTS - HOÀN TẤT         ║")
-            log("╚═══════════════════════════════════════════╝")
-            log("✓ CPU/GPU: Locked MAX | Thermal: OFF")
-            log("✓ I/O: Performance | RAM: No swap")
-            log("✓ Power Save: DISABLED | Network: Optimized")
-            log("")
-            log("🎉 Hệ thống đang chạy hiệu suất TỐI ĐA!")
-            log("")
+            log("🎉 HOÀN TẤT! Hệ thống đang chạy hiệu suất tối đa")
 
             BoostResult(success = true, logs = logs, errors = errors)
 
         } catch (e: Exception) {
             errors.add("ERROR: ${e.message}")
-            log("")
             log("❌ LỖI: ${e.message ?: "Unknown error"}")
             BoostResult(success = false, logs = logs, errors = errors)
         }
