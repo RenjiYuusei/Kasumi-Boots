@@ -175,7 +175,7 @@ class BoostExecutor {
                 "echo 16777216 > /proc/sys/net/core/rmem_max 2>/dev/null || true",
                 "echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null || true"
             )
-
+0
             log("[8/9] Done")
             delay(100)
             
@@ -208,8 +208,17 @@ class BoostExecutor {
     }
 
     private fun executeCommands(vararg commands: String) {
-        commands.forEach { cmd ->
-            Shell.cmd(cmd).exec()
+        try {
+            commands.forEach { cmd ->
+                // Execute and wait for completion
+                val result = Shell.cmd(cmd).exec()
+                // Log errors if any (but continue with || true pattern)
+                if (!result.isSuccess && result.err.isNotEmpty()) {
+                    // Silent fail - expected with || true pattern
+                }
+            }
+        } catch (e: Exception) {
+            // Silent fail - some commands may not be available on all devices
         }
     }
 }

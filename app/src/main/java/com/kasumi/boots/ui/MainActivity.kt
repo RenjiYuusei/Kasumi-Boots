@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnBoost: Button
     private lateinit var btnDiscord: Button
     private lateinit var progress: ProgressBar
+    private lateinit var discordLink: TextView
     
     private val mainScope = CoroutineScope(Dispatchers.Main + Job())
     
@@ -42,9 +43,20 @@ class MainActivity : AppCompatActivity() {
         btnBoost = findViewById(R.id.btnBoost)
         btnDiscord = findViewById(R.id.btnDiscord)
         progress = findViewById(R.id.progress)
+        discordLink = findViewById(R.id.discordLink)
         
         // Discord button (hidden)
         btnDiscord.visibility = android.view.View.GONE
+        
+        // Discord link click handler
+        discordLink.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/kasumi"))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Cannot open Discord link", Toast.LENGTH_SHORT).show()
+            }
+        }
         
         // Set initial status
         tvStatus.text = "Ready"
