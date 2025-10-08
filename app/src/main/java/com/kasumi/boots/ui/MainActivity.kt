@@ -54,24 +54,24 @@ class MainActivity : AppCompatActivity() {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/kasumi"))
                 startActivity(intent)
             } catch (e: Exception) {
-                Toast.makeText(this, "Cannot open Discord", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.toast_discord_error), Toast.LENGTH_SHORT).show()
             }
         }
         
         // Set initial status
-        tvStatus.text = "Ready"
-        tvLog.text = "System ready\nPress START BOOST to begin"
+        tvStatus.text = getString(R.string.status_ready)
+        tvLog.text = getString(R.string.log_empty)
 
         btnBoost.setOnClickListener {
             if (!btnBoost.isEnabled) return@setOnClickListener
             
             // Update button state
             btnBoost.isEnabled = false
-            btnBoost.text = "CHECKING..."
+            btnBoost.text = getString(R.string.btn_checking)
             btnBoost.alpha = 0.6f
             progress.visibility = View.VISIBLE
-            tvStatus.text = "Checking root access..."
-            tvLog.text = "[1/2] Requesting root access..."
+            tvStatus.text = getString(R.string.status_checking)
+            tvLog.text = getString(R.string.log_root_request)
             
             mainScope.launch {
                 try {
@@ -80,22 +80,22 @@ class MainActivity : AppCompatActivity() {
                             try {
                                 val shell = obtainShell()
                                 if (!shell.isRoot) {
-                                    appendLog("[1/2] Root access denied")
+                                    appendLog(getString(R.string.log_root_denied))
                                     return@withTimeout false
                                 }
-                                appendLog("[1/2] Root access granted")
+                                appendLog(getString(R.string.log_root_granted))
                                 
                                 // Check for Magisk/su binary
                                 val suCheck = Shell.cmd("which su").exec()
                                 val magiskCheck = Shell.cmd("which magisk").exec()
                                 
                                 if (magiskCheck.isSuccess) {
-                                    appendLog("[1/2] Magisk detected")
+                                    appendLog(getString(R.string.log_magisk_detected))
                                 } else if (suCheck.isSuccess) {
-                                    appendLog("[1/2] SuperSU/other root detected")
+                                    appendLog(getString(R.string.log_other_root))
                                 } else {
-                                    appendLog("[1/2] WARNING: No root manager found")
-                                    appendLog("[1/2] Install Magisk for best results")
+                                    appendLog(getString(R.string.log_no_root_manager))
+                                    appendLog(getString(R.string.log_install_magisk))
                                 }
                                 
                                 true
@@ -107,29 +107,29 @@ class MainActivity : AppCompatActivity() {
                     }
                     
                     if (hasRoot) {
-                        tvStatus.text = "Root OK"
-                        btnBoost.text = "BOOSTING..."
+                        tvStatus.text = getString(R.string.status_root_ok)
+                        btnBoost.text = getString(R.string.btn_boosting)
                         performBoost()
                     } else {
-                        tvStatus.text = "Root denied"
-                        appendLog("\nROOT ACCESS DENIED\nPlease grant root permission")
+                        tvStatus.text = getString(R.string.status_root_denied)
+                        appendLog("\n" + getString(R.string.error_root_denied))
                         progress.visibility = View.GONE
-                        btnBoost.text = "⚡ START BOOST"
+                        btnBoost.text = getString(R.string.boost_now)
                         btnBoost.alpha = 1f
                         btnBoost.isEnabled = true
                     }
                 } catch (e: TimeoutCancellationException) {
-                    tvStatus.text = "Timeout"
-                    appendLog("\nTIMEOUT after 10s - Try again")
+                    tvStatus.text = getString(R.string.status_timeout)
+                    appendLog("\n" + getString(R.string.error_timeout))
                     progress.visibility = View.GONE
-                    btnBoost.text = "⚡ START BOOST"
+                    btnBoost.text = getString(R.string.boost_now)
                     btnBoost.alpha = 1f
                     btnBoost.isEnabled = true
                 } catch (e: Exception) {
-                    tvStatus.text = "Error"
-                    appendLog("\nERROR: ${e.message ?: "Unknown"}")
+                    tvStatus.text = getString(R.string.status_error)
+                    appendLog("\n${getString(R.string.error_unknown).replace("Không xác định", e.message ?: "Không xác định")}")
                     progress.visibility = View.GONE
-                    btnBoost.text = "⚡ START BOOST"
+                    btnBoost.text = getString(R.string.boost_now)
                     btnBoost.alpha = 1f
                     btnBoost.isEnabled = true
                 }
@@ -143,8 +143,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun performBoost() {
-        tvStatus.text = "Optimizing..."
-        appendLog("\n[2/2] Starting system optimization...")
+        tvStatus.text = getString(R.string.status_boosting)
+        appendLog("\n" + getString(R.string.log_optimization_start))
         
         mainScope.launch {
             try {
@@ -158,24 +158,24 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 if (result.success) {
-                    tvStatus.text = "Completed"
-                    btnBoost.text = "✓ COMPLETED"
+                    tvStatus.text = getString(R.string.status_done)
+                    btnBoost.text = getString(R.string.btn_completed)
                 } else {
-                    tvStatus.text = "Failed"
-                    btnBoost.text = "⚠ FAILED"
+                    tvStatus.text = "Thất Bại"
+                    btnBoost.text = getString(R.string.btn_failed)
                     if (result.errors.isNotEmpty()) {
-                        appendLog("\nErrors: ${result.errors.joinToString(", ")}")
+                        appendLog("\nLỗi: ${result.errors.joinToString(", ")}")
                     }
                 }
                 
             } catch (e: TimeoutCancellationException) {
-                appendLog("\nTIMEOUT: Optimization took over 90s")
-                tvStatus.text = "Timeout"
-                btnBoost.text = "⏱ TIMEOUT"
+                appendLog("\n" + getString(R.string.error_optimization_timeout))
+                tvStatus.text = getString(R.string.status_timeout)
+                btnBoost.text = getString(R.string.btn_timeout)
             } catch (e: Exception) {
-                appendLog("\nERROR: ${e.message ?: "Unknown"}")
-                tvStatus.text = "Error"
-                btnBoost.text = "❌ ERROR"
+                appendLog("\n${getString(R.string.error_unknown).replace("Không xác định", e.message ?: "Không xác định")}")
+                tvStatus.text = getString(R.string.status_error)
+                btnBoost.text = getString(R.string.btn_error)
             } finally {
                 progress.visibility = View.GONE
                 btnBoost.alpha = 1f
