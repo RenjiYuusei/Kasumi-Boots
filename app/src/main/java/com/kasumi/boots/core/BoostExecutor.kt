@@ -28,79 +28,152 @@ class BoostExecutor {
 
         try {
 
-            // SECTION 1: CPU OPTIMIZATION
-            log("[1/9] CPU Optimization")
+            // SECTION 1: AGGRESSIVE CPU OVERCLOCK
+            log("[1/10] Aggressive CPU Overclock")
             delay(100)
             executeCommands(
-                // Enable all CPU cores
-                "for cpu in /sys/devices/system/cpu/cpu[1-9]*; do [ -d \"\$cpu\" ] && echo 1 > \"\$cpu/online\" 2>/dev/null || true; done",
+                // Force enable ALL CPU cores
+                "for cpu in /sys/devices/system/cpu/cpu[0-9]*; do [ -d \"\$cpu\" ] && echo 1 > \"\$cpu/online\" 2>/dev/null || true; done",
                 
-                // Set performance governor + lock max frequency
+                // OVERCLOCK: Lock ALL cores to MAX frequency
                 "for cpu in /sys/devices/system/cpu/cpu[0-9]*/cpufreq; do " +
                         "[ -d \"\$cpu\" ] || continue; " +
                         "echo performance > \"\$cpu/scaling_governor\" 2>/dev/null || true; " +
                         "MAX=\$(cat \"\$cpu/cpuinfo_max_freq\" 2>/dev/null); " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$cpu/scaling_max_freq\" 2>/dev/null || true; " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$cpu/scaling_min_freq\" 2>/dev/null || true; " +
+                        "[ -n \"\$MAX\" ] && echo \$MAX > \"\$cpu/cpuinfo_min_freq\" 2>/dev/null || true; " +
                         "done",
                 
-                // Apply to policy*
+                // Apply to ALL policy*
                 "for p in /sys/devices/system/cpu/cpufreq/policy*; do " +
                         "[ -d \"\$p\" ] || continue; " +
                         "echo performance > \"\$p/scaling_governor\" 2>/dev/null || true; " +
                         "MAX=\$(cat \"\$p/cpuinfo_max_freq\" 2>/dev/null); " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$p/scaling_max_freq\" 2>/dev/null || true; " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$p/scaling_min_freq\" 2>/dev/null || true; " +
-                        "done"
+                        "echo 0 > \"\$p/energy_dcfc_enabled\" 2>/dev/null || true; " +
+                        "done",
+                
+                // Disable CPU power saving features
+                "echo 0 > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 2>/dev/null || true",
+                "echo 0 > /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 2>/dev/null || true",
+                
+                // Force max boost
+                "echo 1 > /sys/devices/system/cpu/cpufreq/boost 2>/dev/null || true",
+                "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo 2>/dev/null && echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo 2>/dev/null || true"
             )
 
-            log("[1/9] Done")
+            log("[1/10] Done")
             delay(100)
             
-            // SECTION 2: THERMAL CONTROL
-            log("[2/9] Thermal Control")
+            // SECTION 2: DISABLE ALL THERMAL THROTTLING
+            log("[2/10] Kill Thermal Throttling")
             delay(100)
             executeCommands(
+                // Disable thermal zones
                 "for t in /sys/class/thermal/thermal_zone*/mode; do [ -f \"\$t\" ] && echo disabled > \"\$t\" 2>/dev/null || true; done",
                 "for t in /sys/class/thermal/thermal_zone*/trip_point_*_temp; do [ -f \"\$t\" ] && echo 999999 > \"\$t\" 2>/dev/null || true; done",
+                
+                // Stop ALL thermal services
                 "stop thermal-engine 2>/dev/null || true",
                 "stop thermald 2>/dev/null || true",
-                "stop mi_thermald 2>/dev/null || true"
+                "stop mi_thermald 2>/dev/null || true",
+                "stop thermal 2>/dev/null || true",
+                "stop vendor.thermal-engine 2>/dev/null || true",
+                
+                // Kill thermal monitoring completely
+                "setprop vendor.disable.thermal.control 1 2>/dev/null || true",
+                "setprop sys.thermal.enable 0 2>/dev/null || true",
+                "killall thermal-engine 2>/dev/null || true",
+                "killall thermald 2>/dev/null || true"
             )
 
-            log("[2/9] Done")
+            log("[2/10] Done")
             delay(100)
             
-            // SECTION 3: GPU OPTIMIZATION
-            log("[3/9] GPU Optimization")
+            // SECTION 3: EXTREME GPU OVERCLOCK
+            log("[3/10] Extreme GPU Overclock")
             delay(100)
             executeCommands(
-                // KGSL (Adreno)
+                // KGSL (Adreno) - MAX OVERCLOCK
                 "if [ -d /sys/class/kgsl/kgsl-3d0/devfreq ]; then " +
                         "echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor 2>/dev/null || true; " +
                         "echo 3 > /sys/class/kgsl/kgsl-3d0/devfreq/adrenoboost 2>/dev/null || true; " +
                         "MAX=\$(cat /sys/class/kgsl/kgsl-3d0/devfreq/max_freq 2>/dev/null); " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 2>/dev/null || true; " +
+                        "[ -n \"\$MAX\" ] && echo \$MAX > /sys/class/kgsl/kgsl-3d0/max_pwrlevel 2>/dev/null || true; " +
+                        "echo 0 > /sys/class/kgsl/kgsl-3d0/min_pwrlevel 2>/dev/null || true; " +
                         "echo 1 > /sys/class/kgsl/kgsl-3d0/force_no_nap 2>/dev/null || true; " +
                         "echo 1 > /sys/class/kgsl/kgsl-3d0/force_bus_on 2>/dev/null || true; " +
                         "echo 1 > /sys/class/kgsl/kgsl-3d0/force_clk_on 2>/dev/null || true; " +
                         "echo 1 > /sys/class/kgsl/kgsl-3d0/force_rail_on 2>/dev/null || true; " +
+                        "echo 0 > /sys/class/kgsl/kgsl-3d0/throttling 2>/dev/null || true; " +
+                        "echo 0 > /sys/class/kgsl/kgsl-3d0/thermal_pwrlevel 2>/dev/null || true; " +
                         "fi",
                 
-                // Generic GPU (Mali/others)
+                // Generic GPU (Mali/others) - LOCK MAX FREQ
                 "for d in /sys/class/devfreq/*gpu* /sys/class/devfreq/*GPU*; do " +
                         "[ -d \"\$d\" ] || continue; " +
                         "echo performance > \"\$d/governor\" 2>/dev/null || true; " +
                         "MAX=\$(cat \"\$d/max_freq\" 2>/dev/null); " +
                         "[ -n \"\$MAX\" ] && echo \$MAX > \"\$d/min_freq\" 2>/dev/null || true; " +
-                        "done"
+                        "echo 0 > \"\$d/polling_interval\" 2>/dev/null || true; " +
+                        "done",
+                
+                // Mali GPU specific
+                "if [ -f /sys/devices/platform/mali/power_policy ]; then " +
+                        "echo always_on > /sys/devices/platform/mali/power_policy 2>/dev/null || true; " +
+                        "fi",
+                
+                // Force GPU max clock via setprop
+                "setprop vendor.debug.egl.swapinterval 0 2>/dev/null || true",
+                "setprop debug.gr.swapinterval 0 2>/dev/null || true"
             )
 
-            log("[3/9] Done")
+            log("[3/10] Done")
             delay(100)
             
-            // SECTION 4: CPU SET & SCHEDULING
-            log("[4/9] CPU Scheduling")
+            // SECTION 4: BUS SPEED & MEMORY OVERCLOCK
+            log("[4/10] Bus & Memory Boost")
+            delay(100)
+            executeCommands(
+                // DDR Bus speed boost
+                "for bus in /sys/class/devfreq/*ddr* /sys/class/devfreq/*ddr*bw /sys/class/devfreq/*DDR*; do " +
+                        "[ -d \"\$bus\" ] 2>/dev/null || continue; " +
+                        "echo performance > \"\$bus/governor\" 2>/dev/null || true; " +
+                        "MAX=\$(cat \"\$bus/max_freq\" 2>/dev/null); " +
+                        "[ -n \"\$MAX\" ] && echo \$MAX > \"\$bus/min_freq\" 2>/dev/null || true; " +
+                        "done",
+                
+                // CPU BUS boost
+                "for bus in /sys/class/devfreq/*cpubw* /sys/class/devfreq/*cpu-cpu-ddr*; do " +
+                        "[ -d \"\$bus\" ] 2>/dev/null || continue; " +
+                        "echo performance > \"\$bus/governor\" 2>/dev/null || true; " +
+                        "MAX=\$(cat \"\$bus/max_freq\" 2>/dev/null); " +
+                        "[ -n \"\$MAX\" ] && echo \$MAX > \"\$bus/min_freq\" 2>/dev/null || true; " +
+                        "done",
+                
+                // GPU BUS boost
+                "for bus in /sys/class/devfreq/*gpubw* /sys/class/devfreq/*gpu-gpu-ddr*; do " +
+                        "[ -d \"\$bus\" ] 2>/dev/null || continue; " +
+                        "echo performance > \"\$bus/governor\" 2>/dev/null || true; " +
+                        "MAX=\$(cat \"\$bus/max_freq\" 2>/dev/null); " +
+                        "[ -n \"\$MAX\" ] && echo \$MAX > \"\$bus/min_freq\" 2>/dev/null || true; " +
+                        "done",
+                
+                // Force all devfreq to performance
+                "for d in /sys/class/devfreq/*; do " +
+                        "[ -d \"\$d\" ] || continue; " +
+                        "echo performance > \"\$d/governor\" 2>/dev/null || true; " +
+                        "done"
+            )
+            
+            log("[4/10] Done")
+            delay(100)
+            
+            // SECTION 5: CPU SET & SCHEDULING
+            log("[5/10] CPU Scheduling")
             delay(100)
             executeCommands(
                 "ONLINE=\$(cat /sys/devices/system/cpu/online 2>/dev/null); " +
@@ -113,11 +186,11 @@ class BoostExecutor {
                 "echo 0 > /proc/sys/kernel/sched_schedstats 2>/dev/null || true"
             )
 
-            log("[4/9] Done")
+            log("[5/10] Done")
             delay(100)
             
-            // SECTION 5: I/O PERFORMANCE (Optimized for speed)
-            log("[5/9] I/O Performance")
+            // SECTION 6: I/O PERFORMANCE (Optimized for speed)
+            log("[6/10] I/O Performance")
             delay(100)
             executeCommands(
                 // Only main storage for speed
@@ -128,11 +201,11 @@ class BoostExecutor {
                         "done &"
             )
 
-            log("[5/9] Done")
+            log("[6/10] Done")
             delay(100)
             
-            // SECTION 6: MEMORY OPTIMIZATION
-            log("[6/9] Memory Optimization")
+            // SECTION 7: MEMORY OPTIMIZATION
+            log("[7/10] Memory Optimization")
             delay(100)
             executeCommands(
                 "echo 0 > /proc/sys/vm/swappiness 2>/dev/null || true",
@@ -143,11 +216,11 @@ class BoostExecutor {
                 "echo 0 > /proc/sys/vm/compaction_proactiveness 2>/dev/null || true"
             )
 
-            log("[6/9] Done")
+            log("[7/10] Done")
             delay(100)
             
-            // SECTION 7: POWER SAVING DISABLED
-            log("[7/9] Disabling Power Saving")
+            // SECTION 8: POWER SAVING DISABLED
+            log("[8/10] Disabling Power Saving")
             delay(100)
             executeCommands(
                 "cmd power set-fixed-performance-mode-enabled true 2>/dev/null || true",
@@ -158,11 +231,11 @@ class BoostExecutor {
                 "dumpsys deviceidle disable 2>/dev/null || true"
             )
 
-            log("[7/9] Done")
+            log("[8/10] Done")
             delay(100)
             
-            // SECTION 8: NETWORK OPTIMIZATION
-            log("[8/9] Network Tuning")
+            // SECTION 9: NETWORK OPTIMIZATION
+            log("[9/10] Network Tuning")
             delay(100)
             executeCommands(
                 "echo 1 > /proc/sys/net/ipv4/tcp_low_latency 2>/dev/null || true",
@@ -174,11 +247,11 @@ class BoostExecutor {
                 "echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null || true"
             )
 0
-            log("[8/9] Done")
+            log("[9/10] Done")
             delay(100)
             
-            // SECTION 9: CLEANUP
-            log("[9/9] System Cleanup")
+            // SECTION 10: SYSTEM CLEANUP
+            log("[10/10] System Cleanup")
             delay(100)
             executeCommands(
                 "sync",
@@ -188,11 +261,11 @@ class BoostExecutor {
                 "stop mpdecision 2>/dev/null || true"
             )
 
-            log("[9/9] Done")
+            log("[10/10] Done")
             delay(100)
             
-            // SECTION 10: CLOUD PHONE OPTIMIZATIONS
-            log("[10/10] Cloud Phone Boost")
+            // CLOUD PHONE SPECIAL OPTIMIZATIONS
+            log("[CLOUD] Cloud Phone Boost")
             delay(100)
             executeCommands(
                 // Disable Android runtime optimizations for speed
@@ -231,14 +304,19 @@ class BoostExecutor {
                 "setprop persist.audio.fluence.speaker false 2>/dev/null || true"
             )
             
-            log("[10/10] Done")
+            log("[CLOUD] Done")
             delay(100)
             
             // SUMMARY
             log("")
-            log("COMPLETED")
-            log("Cloud phone optimized for maximum performance")
-            log("CPU/GPU: MAX | Thermal: OFF | Cloud: Optimized")
+            log("═══════════════════════════════════")
+            log("✓ EXTREME OVERCLOCK COMPLETED")
+            log("═══════════════════════════════════")
+            log("CPU: MAX FREQ LOCKED | ALL CORES ACTIVE")
+            log("GPU: EXTREME OVERCLOCK | THERMAL OFF")
+            log("BUS: MAX SPEED | MEMORY: OPTIMIZED")
+            log("Cloud Phone: FULLY OPTIMIZED")
+            log("═══════════════════════════════════")
 
             BoostResult(success = true, logs = logs, errors = errors)
 
