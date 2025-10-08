@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Kasumi Boots</string>
-    <string name="boost_now">KASUMI BOOST</string>
+    <string name="boost_now">START BOOST</string>
     <string name="status_root_granted">Root granted</string>
-    <string name="status_root_denied">Root denied or unavailable</string>
-    <string name="status_boosting">Optimizing performance…</string>
-    <string name="status_done">Maximum performance activated!</string>
-    <string name="status_checking">Checking root…</string>
-    <string name="log_title">Activity Log</string>
-    <string name="log_empty">No logs yet</string>
-    <string name="boost_description">MAX CPU/GPU/RAM | Thermal OFF | Cloud Phone optimized
-Discord: discord.gg/kasumi</string>
+    <string name="status_root_denied">Root denied</string>
+    <string name="status_boosting">Optimizing</string>
+    <string name="status_done">Completed</string>
+    <string name="status_checking">Checking root access</string>
+    <string name="log_title">System Log</string>
+    <string name="log_empty">System ready</string>
+    <string name="boost_description">Performance optimizer for cloud phones</string>
 </resources>

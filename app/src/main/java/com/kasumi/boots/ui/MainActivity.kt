@@ -43,27 +43,20 @@ class MainActivity : AppCompatActivity() {
         btnDiscord = findViewById(R.id.btnDiscord)
         progress = findViewById(R.id.progress)
         
-        // Discord button
-        btnDiscord.setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/kasumi"))
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, "Không thể mở Discord link", Toast.LENGTH_SHORT).show()
-            }
-        }
+        // Discord button (hidden)
+        btnDiscord.visibility = android.view.View.GONE
         
         // Set initial status
-        tvStatus.text = "⚡ Sẵn Sàng Boost"
-        tvLog.text = "✓ Hệ thống sẵn sàng\n✓ Bấm nút BOOST để bắt đầu"
+        tvStatus.text = "Ready"
+        tvLog.text = "System ready\nPress START BOOST to begin"
 
         btnBoost.setOnClickListener {
             if (!btnBoost.isEnabled) return@setOnClickListener
             
             btnBoost.isEnabled = false
             progress.visibility = View.VISIBLE
-            tvStatus.text = "🔍 Kiểm Tra Root..."
-            tvLog.text = "[1/2] Đang yêu cầu quyền root..."
+            tvStatus.text = "Checking root access..."
+            tvLog.text = "[1/2] Requesting root access..."
             
             mainScope.launch {
                 try {
@@ -71,32 +64,32 @@ class MainActivity : AppCompatActivity() {
                         withTimeout(10000) { // 10s timeout
                             try {
                                 val shell = obtainShell()
-                                appendLog("[1/2] ✓ Quyền ROOT đã được cấp")
+                                appendLog("[1/2] Root access granted")
                                 shell.isRoot
                             } catch (e: Exception) {
-                                appendLog("✗ Lỗi: ${e.message}")
+                                appendLog("ERROR: ${e.message}")
                                 false
                             }
                         }
                     }
                     
                     if (hasRoot) {
-                        tvStatus.text = "✓ Root OK"
+                        tvStatus.text = "Root OK"
                         performBoost()
                     } else {
-                        tvStatus.text = "✗ Thiếu Root"
-                        appendLog("\n✗ KHÔNG CÓ QUYỀN ROOT\nVui lòng cấp quyền root cho app")
+                        tvStatus.text = "Root denied"
+                        appendLog("\nROOT ACCESS DENIED\nPlease grant root permission")
                         progress.visibility = View.GONE
                         btnBoost.isEnabled = true
                     }
                 } catch (e: TimeoutCancellationException) {
-                    tvStatus.text = "⏱ Timeout"
-                    appendLog("\n✗ TIMEOUT sau 10 giây - Hãy thử lại")
+                    tvStatus.text = "Timeout"
+                    appendLog("\nTIMEOUT after 10s - Try again")
                     progress.visibility = View.GONE
                     btnBoost.isEnabled = true
                 } catch (e: Exception) {
-                    tvStatus.text = "❌ Lỗi"
-                    appendLog("\n✗ LỖI: ${e.message ?: "Unknown"}")
+                    tvStatus.text = "Error"
+                    appendLog("\nERROR: ${e.message ?: "Unknown"}")
                     progress.visibility = View.GONE
                     btnBoost.isEnabled = true
                 }
@@ -110,8 +103,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun performBoost() {
-        tvStatus.text = "🚀 Đang Boost..."
-        appendLog("\n[2/2] Đang tối ưu hóa hệ thống...")
+        tvStatus.text = "Optimizing..."
+        appendLog("\n[2/2] Starting system optimization...")
         
         mainScope.launch {
             try {
@@ -125,20 +118,20 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 if (result.success) {
-                    tvStatus.text = "✓ Hoàn Tất"
+                    tvStatus.text = "Completed"
                 } else {
-                    tvStatus.text = "❌ Thất Bại"
+                    tvStatus.text = "Failed"
                     if (result.errors.isNotEmpty()) {
-                        appendLog("\nLỗi: ${result.errors.joinToString(", ")}")
+                        appendLog("\nErrors: ${result.errors.joinToString(", ")}")
                     }
                 }
                 
             } catch (e: TimeoutCancellationException) {
-                appendLog("\n✗ TIMEOUT: Tối ưu hóa chạy quá 90 giây")
-                tvStatus.text = "⏱ Timeout"
+                appendLog("\nTIMEOUT: Optimization took over 90s")
+                tvStatus.text = "Timeout"
             } catch (e: Exception) {
-                appendLog("\n❌ LỖI: ${e.message ?: "Unknown"}")
-                tvStatus.text = "❌ Lỗi"
+                appendLog("\nERROR: ${e.message ?: "Unknown"}")
+                tvStatus.text = "Error"
             } finally {
                 progress.visibility = View.GONE
                 btnBoost.isEnabled = true

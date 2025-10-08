@@ -2,6 +2,7 @@ package com.kasumi.boots.core
 
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /**
@@ -28,7 +29,8 @@ class BoostExecutor {
         try {
 
             // SECTION 1: CPU OPTIMIZATION
-            log("✓ [1/9] CPU Optimization")
+            log("[1/9] CPU Optimization")
+            delay(100)
             executeCommands(
                 // Enable all CPU cores
                 "for cpu in /sys/devices/system/cpu/cpu[1-9]*; do [ -d \"\$cpu\" ] && echo 1 > \"\$cpu/online\" 2>/dev/null || true; done",
@@ -52,8 +54,12 @@ class BoostExecutor {
                         "done"
             )
 
+            log("[1/9] Done")
+            delay(100)
+            
             // SECTION 2: THERMAL CONTROL
-            log("✓ [2/9] Thermal Control")
+            log("[2/9] Thermal Control")
+            delay(100)
             executeCommands(
                 "for t in /sys/class/thermal/thermal_zone*/mode; do [ -f \"\$t\" ] && echo disabled > \"\$t\" 2>/dev/null || true; done",
                 "for t in /sys/class/thermal/thermal_zone*/trip_point_*_temp; do [ -f \"\$t\" ] && echo 999999 > \"\$t\" 2>/dev/null || true; done",
@@ -62,8 +68,12 @@ class BoostExecutor {
                 "stop mi_thermald 2>/dev/null || true"
             )
 
+            log("[2/9] Done")
+            delay(100)
+            
             // SECTION 3: GPU OPTIMIZATION
-            log("✓ [3/9] GPU Optimization")
+            log("[3/9] GPU Optimization")
+            delay(100)
             executeCommands(
                 // KGSL (Adreno)
                 "if [ -d /sys/class/kgsl/kgsl-3d0/devfreq ]; then " +
@@ -86,8 +96,12 @@ class BoostExecutor {
                         "done"
             )
 
+            log("[3/9] Done")
+            delay(100)
+            
             // SECTION 4: CPU SET & SCHEDULING
-            log("✓ [4/9] CPU Set & Scheduling")
+            log("[4/9] CPU Scheduling")
+            delay(100)
             executeCommands(
                 "ONLINE=\$(cat /sys/devices/system/cpu/online 2>/dev/null); " +
                         "[ -n \"\$ONLINE\" ] && for c in /dev/cpuset/*/cpus; do [ -f \"\$c\" ] && echo \$ONLINE > \"\$c\" 2>/dev/null || true; done",
@@ -99,8 +113,12 @@ class BoostExecutor {
                 "echo 0 > /proc/sys/kernel/sched_schedstats 2>/dev/null || true"
             )
 
+            log("[4/9] Done")
+            delay(100)
+            
             // SECTION 5: I/O PERFORMANCE
-            log("✓ [5/9] I/O Performance")
+            log("[5/9] I/O Performance")
+            delay(100)
             executeCommands(
                 "for b in /sys/block/*/queue; do " +
                         "[ -d \"\$b\" ] || continue; " +
@@ -112,8 +130,12 @@ class BoostExecutor {
                         "done"
             )
 
+            log("[5/9] Done")
+            delay(100)
+            
             // SECTION 6: MEMORY OPTIMIZATION
-            log("✓ [6/9] Memory Optimization")
+            log("[6/9] Memory Optimization")
+            delay(100)
             executeCommands(
                 "echo 0 > /proc/sys/vm/swappiness 2>/dev/null || true",
                 "echo 30 > /proc/sys/vm/dirty_ratio 2>/dev/null || true",
@@ -123,8 +145,12 @@ class BoostExecutor {
                 "echo 0 > /proc/sys/vm/compaction_proactiveness 2>/dev/null || true"
             )
 
+            log("[6/9] Done")
+            delay(100)
+            
             // SECTION 7: POWER SAVING DISABLED
-            log("✓ [7/9] Power Saving Disabled")
+            log("[7/9] Disabling Power Saving")
+            delay(100)
             executeCommands(
                 "cmd power set-fixed-performance-mode-enabled true 2>/dev/null || true",
                 "cmd power set-mode 0 2>/dev/null || true",
@@ -134,8 +160,12 @@ class BoostExecutor {
                 "dumpsys deviceidle disable 2>/dev/null || true"
             )
 
+            log("[7/9] Done")
+            delay(100)
+            
             // SECTION 8: NETWORK OPTIMIZATION
-            log("✓ [8/9] Network Tuning")
+            log("[8/9] Network Tuning")
+            delay(100)
             executeCommands(
                 "echo 1 > /proc/sys/net/ipv4/tcp_low_latency 2>/dev/null || true",
                 "echo 1 > /proc/sys/net/ipv4/tcp_timestamps 2>/dev/null || true",
@@ -146,8 +176,12 @@ class BoostExecutor {
                 "echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null || true"
             )
 
+            log("[8/9] Done")
+            delay(100)
+            
             // SECTION 9: CLEANUP
-            log("✓ [9/9] Cleanup")
+            log("[9/9] System Cleanup")
+            delay(100)
             executeCommands(
                 "sync",
                 "echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true",
@@ -156,15 +190,19 @@ class BoostExecutor {
                 "stop mpdecision 2>/dev/null || true"
             )
 
+            log("[9/9] Done")
+            delay(100)
+            
             // SUMMARY
             log("")
-            log("🎉 HOÀN TẤT! Hệ thống đang chạy hiệu suất tối đa")
+            log("COMPLETED")
+            log("System is now running at maximum performance")
 
             BoostResult(success = true, logs = logs, errors = errors)
 
         } catch (e: Exception) {
             errors.add("ERROR: ${e.message}")
-            log("❌ LỖI: ${e.message ?: "Unknown error"}")
+            log("ERROR: ${e.message ?: "Unknown error"}")
             BoostResult(success = false, logs = logs, errors = errors)
         }
     }
