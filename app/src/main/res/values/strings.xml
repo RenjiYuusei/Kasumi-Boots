@@ -1,26 +1,26 @@
 <resources>
     <string name="app_name">Kasumi Boots</string>
-    <string name="boost_now">⚡ BẮT ĐẦU TỐI ƯU</string>
+    <string name="boost_now">BẮT ĐẦU TỐI ƯU</string>
     <string name="status_ready">Sẵn Sàng</string>
     <string name="status_root_granted">Đã Cấp Quyền Root</string>
     <string name="status_root_denied">Từ Chối Quyền Root</string>
     <string name="status_root_ok">Root OK</string>
     <string name="status_boosting">Đang Tối Ưu</string>
     <string name="status_done">Hoàn Thành</string>
-    <string name="status_checking">Đang Kiểm Tra Quyền Root...</string>
+    <string name="status_checking">Đang Kiểm Tra Quyền Root…</string>
     <string name="status_timeout">Hết Thời Gian</string>
     <string name="status_error">Lỗi</string>
     <string name="log_title">Nhật Ký Hệ Thống</string>
-    <string name="log_empty">Hệ thống sẵn sàng\nNhấn BẮT ĐẠU TỐI ƯU để bắt đầu</string>
+    <string name="log_empty">Hệ thống sẵn sàng\nNhấn BẮT ĐẦU TỐI ƯU để bắt đầu</string>
     <string name="boost_description">Tối ưu hiệu năng cho điện thoại ảo</string>
-    <string name="discord_join">🎮 Tham Gia Discord</string>
+    <string name="discord_join">Tham Gia Discord</string>
     <string name="toast_discord_error">Không thể mở Discord</string>
-    <string name="btn_checking">ĐANG KIỂM TRA...</string>
-    <string name="btn_boosting">ĐANG TỐI ƯU...</string>
-    <string name="btn_completed">✓ ĐÃ HOÀN THÀNH</string>
-    <string name="btn_failed">⚠ THẤT BẠI</string>
-    <string name="btn_timeout">⏱ HẾT THỜI GIAN</string>
-    <string name="btn_error">❌ LỖI</string>
+    <string name="btn_checking">ĐANG KIỂM TRA…</string>
+    <string name="btn_boosting">ĐANG TỐI ƯU…</string>
+    <string name="btn_completed">HOÀN THÀNH</string>
+    <string name="btn_failed">THẤT BẠI</string>
+    <string name="btn_timeout">HẾT THỜI GIAN</string>
+    <string name="btn_error">LỖI</string>
     <string name="log_root_request">[1/2] Đang yêu cầu quyền root...</string>
     <string name="log_root_denied">[1/2] Từ chối quyền root</string>
     <string name="log_root_granted">[1/2] Đã cấp quyền root</string>
@@ -33,4 +33,5 @@
     <string name="error_timeout">HẾT THỜI GIAN sau 10 giây - Thử lại</string>
     <string name="error_optimization_timeout">HẾT THỜI GIAN: Tối ưu mất quá 90 giây</string>
     <string name="error_unknown">LỖI: Không xác định</string>
+    <string name="status_loading">Đang Xử Lý…</string>
 </resources>

@@ -104,9 +104,9 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Log Card with modern design -->
+        <!-- Loading and Status Area with modern design -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/logCard"
+            android:id="@+id/loadingCard"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:cardBackgroundColor="#1C1C28"
@@ -121,30 +121,74 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp">
 
-            <ScrollView
-                android:id="@+id/logScrollView"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="16dp"
-                android:scrollbars="vertical"
-                android:fadeScrollbars="false">
+                android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/tvLog"
+                <!-- Loading Animation -->
+                <LinearLayout
+                    android:id="@+id/loadingContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/log_empty"
-                    android:textSize="12sp"
-                    android:textColor="#00FFB3"
-                    android:fontFamily="monospace"
-                    android:textIsSelectable="true"
-                    android:lineSpacingExtra="4dp"
-                    android:shadowColor="#00FFB322"
-                    android:shadowDx="0"
-                    android:shadowDy="0"
-                    android:shadowRadius="4"/>
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone">
 
-            </ScrollView>
+                    <ImageView
+                        android:id="@+id/ivLoading"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_loading"
+                        android:contentDescription="@string/status_loading"/>
+
+                    <TextView
+                        android:id="@+id/tvLoadingText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/status_checking"
+                        android:textSize="14sp"
+                        android:textColor="#00FFB3"
+                        android:textStyle="bold"
+                        android:layout_marginTop="16dp"
+                        android:shadowColor="#00FFB355"
+                        android:shadowDx="0"
+                        android:shadowDy="0"
+                        android:shadowRadius="8"/>
+
+                </LinearLayout>
+
+                <!-- Result Icon and Message -->
+                <LinearLayout
+                    android:id="@+id/resultContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="visible"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:id="@+id/ivResultIcon"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ic_boost"
+                        android:contentDescription="@string/status_ready"/>
+
+                    <TextView
+                        android:id="@+id/tvResultMessage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/log_empty"
+                        android:textSize="14sp"
+                        android:textColor="#C4C4D4"
+                        android:textAlignment="center"
+                        android:gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:lineSpacingExtra="4dp"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
@@ -184,6 +228,10 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="#0D0D12"
+            app:icon="@drawable/ic_boost"
+            app:iconGravity="textStart"
+            app:iconSize="24dp"
+            app:iconTint="#0D0D12"
             app:backgroundTint="#00FFB3"
             app:rippleColor="#FFFFFF"
             app:cornerRadius="12dp"

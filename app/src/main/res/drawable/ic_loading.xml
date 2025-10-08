@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#2A2A3A"
+        android:strokeWidth="4"
+        android:pathData="M32,8 A24,24 0 1,1 32,56 A24,24 0 1,1 32,8"/>
+    
+    <!-- Animated arc -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00FFB3"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M32,8 A24,24 0 0,1 56,32"/>
+    
+    <!-- Glow effect -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#00FFB355"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M32,8 A24,24 0 0,1 56,32"/>
+    
+</vector>
