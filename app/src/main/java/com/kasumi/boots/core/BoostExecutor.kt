@@ -116,18 +116,16 @@ class BoostExecutor {
             log("[4/9] Done")
             delay(100)
             
-            // SECTION 5: I/O PERFORMANCE
+            // SECTION 5: I/O PERFORMANCE (Optimized for speed)
             log("[5/9] I/O Performance")
             delay(100)
             executeCommands(
-                "for b in /sys/block/*/queue; do " +
-                        "[ -d \"\$b\" ] || continue; " +
+                // Only main storage for speed
+                "for b in /sys/block/sda*/queue /sys/block/mmcblk*/queue /sys/block/vd*/queue; do " +
+                        "[ -d \"\$b\" ] 2>/dev/null || continue; " +
                         "echo 2048 > \"\$b/read_ahead_kb\" 2>/dev/null || true; " +
-                        "echo 512 > \"\$b/nr_requests\" 2>/dev/null || true; " +
-                        "echo 2 > \"\$b/rq_affinity\" 2>/dev/null || true; " +
-                        "echo 0 > \"\$b/add_random\" 2>/dev/null || true; " +
                         "echo 0 > \"\$b/iostats\" 2>/dev/null || true; " +
-                        "done"
+                        "done &"
             )
 
             log("[5/9] Done")
@@ -193,10 +191,54 @@ class BoostExecutor {
             log("[9/9] Done")
             delay(100)
             
+            // SECTION 10: CLOUD PHONE OPTIMIZATIONS
+            log("[10/10] Cloud Phone Boost")
+            delay(100)
+            executeCommands(
+                // Disable Android runtime optimizations for speed
+                "setprop dalvik.vm.dex2oat-flags --compiler-filter=verify-none 2>/dev/null || true",
+                "setprop dalvik.vm.image-dex2oat-flags --compiler-filter=verify-none 2>/dev/null || true",
+                "setprop dalvik.vm.dex2oat-threads 4 2>/dev/null || true",
+                
+                // Force GPU rendering and max performance
+                "setprop debug.hwui.renderer skiagl 2>/dev/null || true",
+                "setprop debug.egl.hw 1 2>/dev/null || true",
+                "setprop debug.sf.hw 1 2>/dev/null || true",
+                "setprop ro.config.enable.hw_accel true 2>/dev/null || true",
+                
+                // Disable unnecessary cloud phone services
+                "setprop config.disable_bluetooth true 2>/dev/null || true",
+                "setprop config.disable_location true 2>/dev/null || true",
+                "setprop config.disable_cameraservice true 2>/dev/null || true",
+                "setprop config.disable_systemui.screenrecord true 2>/dev/null || true",
+                
+                // Optimize networking for cloud
+                "setprop net.tcp.buffersize.default 4096,87380,704512,4096,16384,110208 2>/dev/null || true",
+                "setprop net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152 2>/dev/null || true",
+                
+                // Disable battery optimizations (no real battery)
+                "dumpsys battery unplug 2>/dev/null || true",
+                "dumpsys battery set level 100 2>/dev/null || true",
+                "dumpsys battery set status 2 2>/dev/null || true",
+                
+                // Disable animations for speed
+                "settings put global window_animation_scale 0 2>/dev/null || true",
+                "settings put global transition_animation_scale 0 2>/dev/null || true",
+                "settings put global animator_duration_scale 0 2>/dev/null || true",
+                
+                // Boost audio performance
+                "setprop audio.offload.disable 1 2>/dev/null || true",
+                "setprop persist.audio.fluence.speaker false 2>/dev/null || true"
+            )
+            
+            log("[10/10] Done")
+            delay(100)
+            
             // SUMMARY
             log("")
             log("COMPLETED")
-            log("System is now running at maximum performance")
+            log("Cloud phone optimized for maximum performance")
+            log("CPU/GPU: MAX | Thermal: OFF | Cloud: Optimized")
 
             BoostResult(success = true, logs = logs, errors = errors)
 

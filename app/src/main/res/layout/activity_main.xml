@@ -114,30 +114,42 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/discordLink"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Discord: discord.gg/kasumi"
-            android:textSize="11sp"
-            android:textColor="#5865F2"
-            android:gravity="center"
-            android:padding="8dp"
+            android:layout_height="44dp"
+            android:text="Join Discord"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            app:icon="@drawable/ic_discord"
+            app:iconGravity="textStart"
+            app:iconSize="20dp"
+            app:iconTint="#FFFFFF"
+            app:backgroundTint="#5865F2"
+            app:rippleColor="#FFFFFF"
+            app:cornerRadius="8dp"
+            app:strokeColor="#7289DA"
+            app:strokeWidth="0dp"
+            android:letterSpacing="0.05"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/btnBoost"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.MaterialComponents.Button"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBoost"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:text="START BOOST"
-            android:textSize="14sp"
+            android:text="⚡ START BOOST"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:textColor="#000000"
             app:backgroundTint="#00FF88"
+            app:rippleColor="#FFFFFF"
             app:cornerRadius="8dp"
+            app:elevation="2dp"
             android:letterSpacing="0.1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

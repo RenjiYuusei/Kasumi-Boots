@@ -2,7 +2,7 @@ package com.kasumi.boots.ui
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -21,10 +21,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var tvDescription: TextView
     private lateinit var tvLog: TextView
-    private lateinit var btnBoost: Button
-    private lateinit var btnDiscord: Button
+    private lateinit var btnBoost: MaterialButton
+    private lateinit var btnDiscord: MaterialButton
     private lateinit var progress: ProgressBar
-    private lateinit var discordLink: TextView
+    private lateinit var discordLink: MaterialButton
     
     private val mainScope = CoroutineScope(Dispatchers.Main + Job())
     
@@ -45,16 +45,16 @@ class MainActivity : AppCompatActivity() {
         progress = findViewById(R.id.progress)
         discordLink = findViewById(R.id.discordLink)
         
-        // Discord button (hidden)
+        // Discord button (hidden old one)
         btnDiscord.visibility = android.view.View.GONE
         
-        // Discord link click handler
+        // Discord button click handler
         discordLink.setOnClickListener {
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/kasumi"))
                 startActivity(intent)
             } catch (e: Exception) {
-                Toast.makeText(this, "Cannot open Discord link", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Cannot open Discord", Toast.LENGTH_SHORT).show()
             }
         }
         
@@ -65,7 +65,10 @@ class MainActivity : AppCompatActivity() {
         btnBoost.setOnClickListener {
             if (!btnBoost.isEnabled) return@setOnClickListener
             
+            // Update button state
             btnBoost.isEnabled = false
+            btnBoost.text = "CHECKING..."
+            btnBoost.alpha = 0.6f
             progress.visibility = View.VISIBLE
             tvStatus.text = "Checking root access..."
             tvLog.text = "[1/2] Requesting root access..."
@@ -76,8 +79,26 @@ class MainActivity : AppCompatActivity() {
                         withTimeout(10000) { // 10s timeout
                             try {
                                 val shell = obtainShell()
+                                if (!shell.isRoot) {
+                                    appendLog("[1/2] Root access denied")
+                                    return@withTimeout false
+                                }
                                 appendLog("[1/2] Root access granted")
-                                shell.isRoot
+                                
+                                // Check for Magisk/su binary
+                                val suCheck = Shell.cmd("which su").exec()
+                                val magiskCheck = Shell.cmd("which magisk").exec()
+                                
+                                if (magiskCheck.isSuccess) {
+                                    appendLog("[1/2] Magisk detected")
+                                } else if (suCheck.isSuccess) {
+                                    appendLog("[1/2] SuperSU/other root detected")
+                                } else {
+                                    appendLog("[1/2] WARNING: No root manager found")
+                                    appendLog("[1/2] Install Magisk for best results")
+                                }
+                                
+                                true
                             } catch (e: Exception) {
                                 appendLog("ERROR: ${e.message}")
                                 false
@@ -87,22 +108,29 @@ class MainActivity : AppCompatActivity() {
                     
                     if (hasRoot) {
                         tvStatus.text = "Root OK"
+                        btnBoost.text = "BOOSTING..."
                         performBoost()
                     } else {
                         tvStatus.text = "Root denied"
                         appendLog("\nROOT ACCESS DENIED\nPlease grant root permission")
                         progress.visibility = View.GONE
+                        btnBoost.text = "⚡ START BOOST"
+                        btnBoost.alpha = 1f
                         btnBoost.isEnabled = true
                     }
                 } catch (e: TimeoutCancellationException) {
                     tvStatus.text = "Timeout"
                     appendLog("\nTIMEOUT after 10s - Try again")
                     progress.visibility = View.GONE
+                    btnBoost.text = "⚡ START BOOST"
+                    btnBoost.alpha = 1f
                     btnBoost.isEnabled = true
                 } catch (e: Exception) {
                     tvStatus.text = "Error"
                     appendLog("\nERROR: ${e.message ?: "Unknown"}")
                     progress.visibility = View.GONE
+                    btnBoost.text = "⚡ START BOOST"
+                    btnBoost.alpha = 1f
                     btnBoost.isEnabled = true
                 }
             }
@@ -131,8 +159,10 @@ class MainActivity : AppCompatActivity() {
                 
                 if (result.success) {
                     tvStatus.text = "Completed"
+                    btnBoost.text = "✓ COMPLETED"
                 } else {
                     tvStatus.text = "Failed"
+                    btnBoost.text = "⚠ FAILED"
                     if (result.errors.isNotEmpty()) {
                         appendLog("\nErrors: ${result.errors.joinToString(", ")}")
                     }
@@ -141,11 +171,14 @@ class MainActivity : AppCompatActivity() {
             } catch (e: TimeoutCancellationException) {
                 appendLog("\nTIMEOUT: Optimization took over 90s")
                 tvStatus.text = "Timeout"
+                btnBoost.text = "⏱ TIMEOUT"
             } catch (e: Exception) {
                 appendLog("\nERROR: ${e.message ?: "Unknown"}")
                 tvStatus.text = "Error"
+                btnBoost.text = "❌ ERROR"
             } finally {
                 progress.visibility = View.GONE
+                btnBoost.alpha = 1f
                 btnBoost.isEnabled = true
             }
         }
