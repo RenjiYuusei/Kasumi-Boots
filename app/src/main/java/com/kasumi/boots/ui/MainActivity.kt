@@ -1,227 +1,322 @@
 package com.kasumi.boots.ui
 
 import android.os.Bundle
-import android.view.View
-import com.google.android.material.button.MaterialButton
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.ImageView
-import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
-import com.kasumi.boots.R
-import com.kasumi.boots.core.BoostExecutor
-import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.*
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
-import android.view.animation.AnimationUtils
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kasumi.boots.core.BoostExecutor
+import com.kasumi.boots.ui.theme.KasumiBootsTheme
+import com.kasumi.boots.ui.theme.NeonGreen
+import com.kasumi.boots.ui.theme.TextSecondary
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-class MainActivity : AppCompatActivity() {
-    
-    private lateinit var tvStatus: TextView
-    private lateinit var tvDescription: TextView
-    private lateinit var btnBoost: MaterialButton
-    private lateinit var btnDiscord: MaterialButton
-    private lateinit var progress: ProgressBar
-    private lateinit var discordLink: MaterialButton
-    
-    // Loading and Result views
-    private lateinit var loadingContainer: LinearLayout
-    private lateinit var resultContainer: LinearLayout
-    private lateinit var ivLoading: ImageView
-    private lateinit var tvLoadingText: TextView
-    private lateinit var ivResultIcon: ImageView
-    private lateinit var tvResultMessage: TextView
-    
-    private val mainScope = CoroutineScope(Dispatchers.Main + Job())
-    
-    private suspend fun obtainShell(): Shell = suspendCancellableCoroutine { cont ->
-        Shell.getShell { shell -> cont.resume(shell) }
-    }
-    
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         
-        // Initialize views
-        tvStatus = findViewById(R.id.tvStatus)
-        tvDescription = findViewById(R.id.tvDescription)
-        btnBoost = findViewById(R.id.btnBoost)
-        btnDiscord = findViewById(R.id.btnDiscord)
-        progress = findViewById(R.id.progress)
-        discordLink = findViewById(R.id.discordLink)
-        
-        // Initialize loading and result views
-        loadingContainer = findViewById(R.id.loadingContainer)
-        resultContainer = findViewById(R.id.resultContainer)
-        ivLoading = findViewById(R.id.ivLoading)
-        tvLoadingText = findViewById(R.id.tvLoadingText)
-        ivResultIcon = findViewById(R.id.ivResultIcon)
-        tvResultMessage = findViewById(R.id.tvResultMessage)
-        
-        // Discord button (hidden old one)
-        btnDiscord.visibility = android.view.View.GONE
-        
-        // Discord button click handler
-        discordLink.setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/kasumi"))
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, getString(R.string.toast_discord_error), Toast.LENGTH_SHORT).show()
+        // Ensure Shell is cached
+        Shell.getShell {}
+
+        setContent {
+            KasumiBootsTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MainScreen()
+                }
             }
         }
-        
-        // Set initial status
-        tvStatus.text = getString(R.string.status_ready)
-        showResult(R.drawable.ic_boost, getString(R.string.log_empty))
+    }
+}
 
-        btnBoost.setOnClickListener {
-            if (!btnBoost.isEnabled) return@setOnClickListener
+@Composable
+fun MainScreen() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var statusText by remember { mutableStateOf("Ready") }
+    var descriptionText by remember { mutableStateOf("Nhấn vào nút bên dưới để tối ưu hóa hệ thống.") }
+    var isBoosting by remember { mutableStateOf(false) }
+    var boostProgress by remember { mutableStateOf(0f) }
+    var boostLogs by remember { mutableStateOf(listOf<String>()) }
+    var resultSuccess by remember { mutableStateOf<Boolean?>(null) }
+
+    val scrollState = rememberScrollState()
+
+    fun performBoost() {
+        scope.launch {
+            isBoosting = true
+            boostProgress = 0f
+            boostLogs = emptyList()
+            resultSuccess = null
+            statusText = "Checking Root..."
             
-            // Update button state
-            btnBoost.isEnabled = false
-            btnBoost.text = getString(R.string.btn_checking)
-            btnBoost.icon = null
-            btnBoost.alpha = 0.6f
-            progress.visibility = View.VISIBLE
-            tvStatus.text = getString(R.string.status_checking)
-            showLoading(getString(R.string.status_checking))
-            
-            mainScope.launch {
+            val hasRoot = withContext(Dispatchers.IO) {
                 try {
-                    val hasRoot = withContext(Dispatchers.IO) {
-                        withTimeout(10000) { // 10s timeout
-                            try {
-                                val shell = obtainShell()
-                                if (!shell.isRoot) {
-                                    return@withTimeout false
-                                }
-                                true
-                            } catch (e: Exception) {
-                                false
+                    withTimeout(5000) {
+                        suspendCoroutine<Boolean> { cont ->
+                            Shell.getShell { shell ->
+                                cont.resume(shell.isRoot)
                             }
                         }
                     }
-                    
-                    if (hasRoot) {
-                        tvStatus.text = getString(R.string.status_root_ok)
-                        btnBoost.text = getString(R.string.btn_boosting)
-                        tvLoadingText.text = getString(R.string.status_boosting)
-                        performBoost()
-                    } else {
-                        tvStatus.text = getString(R.string.status_root_denied)
-                        showResult(R.drawable.ic_error, getString(R.string.error_root_denied))
-                        progress.visibility = View.GONE
-                        btnBoost.text = getString(R.string.boost_now)
-                        btnBoost.setIconResource(R.drawable.ic_boost)
-                        btnBoost.alpha = 1f
-                        btnBoost.isEnabled = true
-                    }
-                } catch (e: TimeoutCancellationException) {
-                    tvStatus.text = getString(R.string.status_timeout)
-                    showResult(R.drawable.ic_time, getString(R.string.error_timeout))
-                    progress.visibility = View.GONE
-                    btnBoost.text = getString(R.string.boost_now)
-                    btnBoost.setIconResource(R.drawable.ic_boost)
-                    btnBoost.alpha = 1f
-                    btnBoost.isEnabled = true
                 } catch (e: Exception) {
-                    tvStatus.text = getString(R.string.status_error)
-                    showResult(R.drawable.ic_error, getString(R.string.error_unknown))
-                    progress.visibility = View.GONE
-                    btnBoost.text = getString(R.string.boost_now)
-                    btnBoost.setIconResource(R.drawable.ic_boost)
-                    btnBoost.alpha = 1f
-                    btnBoost.isEnabled = true
+                    false
                 }
             }
+
+            if (!hasRoot) {
+                statusText = "Root Denied"
+                descriptionText = "Ứng dụng cần quyền Root để hoạt động."
+                resultSuccess = false
+                isBoosting = false
+                return@launch
+            }
+
+            statusText = "Boosting..."
+            descriptionText = "Đang thực hiện tối ưu hóa..."
+
+            val executor = BoostExecutor()
+            val result = executor.execute { log ->
+                boostLogs = boostLogs + log
+                // Auto scroll to bottom of logs?
+            }
+
+            if (result.success) {
+                statusText = "Hoàn tất"
+                descriptionText = "Hệ thống đã được tối ưu hóa thành công."
+                resultSuccess = true
+            } else {
+                statusText = "Thất bại"
+                descriptionText = result.errors.joinToString("\n")
+                resultSuccess = false
+            }
+
+            isBoosting = false
         }
     }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        mainScope.cancel()
-    }
-    
-    private fun performBoost() {
-        tvStatus.text = getString(R.string.status_boosting)
-        showLoading(getString(R.string.status_boosting))
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
         
-        mainScope.launch {
-            try {
-                val executor = BoostExecutor()
-                val result = withContext(Dispatchers.IO) {
-                    withTimeout(90000) { // 90s timeout
-                        executor.execute { log ->
-                            // Ignore log output
-                        }
-                    }
-                }
+        // Header
+        Text(
+            text = "KASUMI BOOTS",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        )
+
+        Text(
+            text = "Tối Ưu Hiệu Năng",
+            style = MaterialTheme.typography.labelLarge.copy(
+                color = TextSecondary,
+                letterSpacing = 1.sp
+            ),
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Status Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(8.dp, RoundedCornerShape(24.dp)),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 
-                if (result.success) {
-                    tvStatus.text = getString(R.string.status_done)
-                    btnBoost.text = getString(R.string.btn_completed)
-                    btnBoost.setIconResource(R.drawable.ic_check)
-                    showResult(R.drawable.ic_check, "Tối ưu hệ thống thành công!\nĐiện thoại của bạn đã được tăng tốc.")
-                } else {
-                    tvStatus.text = "Thất Bại"
-                    btnBoost.text = getString(R.string.btn_failed)
-                    btnBoost.setIconResource(R.drawable.ic_error)
-                    val errorMsg = if (result.errors.isNotEmpty()) {
-                        "Lỗi: ${result.errors.joinToString(", ")}"
+                // Icon or Loading
+                Box(
+                    modifier = Modifier.size(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isBoosting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.fillMaxSize(),
+                            color = NeonGreen,
+                            strokeWidth = 4.dp
+                        )
                     } else {
-                        "Quá trình tối ưu gặp lỗi.\nVui lòng thử lại."
+                        val iconVector = when (resultSuccess) {
+                            true -> Icons.Default.Check
+                            false -> Icons.Default.Close
+                            else -> Icons.Default.Bolt
+                        }
+
+                        val iconColor = when (resultSuccess) {
+                            true -> Color.Green
+                            false -> Color.Red
+                            else -> NeonGreen
+                        }
+
+                        Icon(
+                            imageVector = iconVector,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = iconColor
+                        )
                     }
-                    showResult(R.drawable.ic_error, errorMsg)
                 }
                 
-            } catch (e: TimeoutCancellationException) {
-                tvStatus.text = getString(R.string.status_timeout)
-                btnBoost.text = getString(R.string.btn_timeout)
-                btnBoost.setIconResource(R.drawable.ic_time)
-                showResult(R.drawable.ic_time, getString(R.string.error_optimization_timeout))
-            } catch (e: Exception) {
-                tvStatus.text = getString(R.string.status_error)
-                btnBoost.text = getString(R.string.btn_error)
-                btnBoost.setIconResource(R.drawable.ic_error)
-                showResult(R.drawable.ic_error, e.message ?: getString(R.string.error_unknown))
-            } finally {
-                progress.visibility = View.GONE
-                btnBoost.alpha = 1f
-                btnBoost.isEnabled = true
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = statusText,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        color = if (isBoosting) NeonGreen else MaterialTheme.colorScheme.onSurface
+                    ),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = descriptionText,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TextSecondary
+                    ),
+                    textAlign = TextAlign.Center
+                )
             }
         }
-    }
-    
-    private fun showLoading(message: String) {
-        mainScope.launch(Dispatchers.Main.immediate) {
-            resultContainer.visibility = View.GONE
-            loadingContainer.visibility = View.VISIBLE
-            tvLoadingText.text = message
-            
-            // Start rotation animation
-            val rotateAnim = AnimationUtils.loadAnimation(this@MainActivity, R.anim.rotate_loading)
-            ivLoading.startAnimation(rotateAnim)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Logs Area (Visible when logs exist)
+        AnimatedVisibility(visible = boostLogs.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 0.dp, max = 200.dp)
+                    .padding(vertical = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF12121A)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(12.dp)
+                ) {
+                    boostLogs.forEach { log ->
+                        Text(
+                            text = log,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                color = Color(0xFFAAAAAA)
+                            )
+                        )
+                    }
+                }
+            }
         }
-    }
-    
-    private fun showResult(iconRes: Int, message: String) {
-        mainScope.launch(Dispatchers.Main.immediate) {
-            // Stop loading animation
-            ivLoading.clearAnimation()
-            
-            loadingContainer.visibility = View.GONE
-            resultContainer.visibility = View.VISIBLE
-            ivResultIcon.setImageResource(iconRes)
-            tvResultMessage.text = message
-            
-            // Fade in animation
-            val fadeIn = AnimationUtils.loadAnimation(this@MainActivity, R.anim.fade_in)
-            resultContainer.startAnimation(fadeIn)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Boost Button
+        Button(
+            onClick = { performBoost() },
+            enabled = !isBoosting,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .shadow(
+                    elevation = if (isBoosting) 0.dp else 8.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    spotColor = NeonGreen
+                ),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = NeonGreen,
+                disabledContainerColor = Color(0xFF1E2F2A)
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            if (isBoosting) {
+                Text(
+                    text = "Đang xử lý...",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Bolt,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "TĂNG TỐC NGAY",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }

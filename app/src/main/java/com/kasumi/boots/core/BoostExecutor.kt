@@ -246,7 +246,7 @@ class BoostExecutor {
                 "echo 16777216 > /proc/sys/net/core/rmem_max 2>/dev/null || true",
                 "echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null || true"
             )
-0
+
             log("[9/10] Done")
             delay(100)
             
@@ -307,6 +307,31 @@ class BoostExecutor {
             log("[CLOUD] Done")
             delay(100)
             
+            // ADDITIONAL EXTREME TWEAKS
+            log("[EXTREME] Applying Extreme Tweaks")
+            delay(100)
+            executeCommands(
+                // Disable Logs to save I/O
+                "stop logd 2>/dev/null || true",
+                "stop logd-reinit 2>/dev/null || true",
+
+                // Aggressive Doze Disable
+                "dumpsys deviceidle disable all 2>/dev/null || true",
+                "dumpsys deviceidle whitelist +com.kasumi.boots 2>/dev/null || true",
+
+                // Disable more background services (print, nfc, telecom if cloud phone doesn't call)
+                "pm disable com.android.printspooler 2>/dev/null || true",
+                "pm disable com.android.nfc 2>/dev/null || true",
+                "pm disable com.android.stk 2>/dev/null || true",
+
+                // TCP tweaks for high throughput
+                "echo 4096 87380 6291456 > /proc/sys/net/ipv4/tcp_rmem 2>/dev/null || true",
+                "echo 4096 87380 6291456 > /proc/sys/net/ipv4/tcp_wmem 2>/dev/null || true"
+            )
+
+            log("[EXTREME] Done")
+            delay(100)
+
             // SUMMARY
             log("")
             log("═══════════════════════════════════")
