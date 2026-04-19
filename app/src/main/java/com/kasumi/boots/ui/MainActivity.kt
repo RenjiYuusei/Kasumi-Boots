@@ -22,7 +22,6 @@ import android.view.animation.AnimationUtils
 class MainActivity : AppCompatActivity() {
     
     private lateinit var tvStatus: TextView
-    private lateinit var tvDescription: TextView
     private lateinit var btnBoost: MaterialButton
     private lateinit var btnDiscord: MaterialButton
     private lateinit var progress: ProgressBar
@@ -48,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         
         // Initialize views
         tvStatus = findViewById(R.id.tvStatus)
-        tvDescription = findViewById(R.id.tvDescription)
         btnBoost = findViewById(R.id.btnBoost)
         btnDiscord = findViewById(R.id.btnDiscord)
         progress = findViewById(R.id.progress)
