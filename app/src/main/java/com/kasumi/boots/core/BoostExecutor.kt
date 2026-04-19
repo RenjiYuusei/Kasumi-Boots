@@ -193,7 +193,9 @@ class BoostExecutor {
             log("[6/10] I/O Performance")
             delay(100)
             executeCommands(
-                // Only main storage for speed
+                // Only main storage for speed.
+                // Note: We run this synchronously (without '&') because background processes in libsu
+                // share stdout, which can corrupt libsu's sentinel output and cause unpredictable hangs.
                 "for b in /sys/block/sda*/queue /sys/block/mmcblk*/queue /sys/block/vd*/queue; do " +
                         "[ -d \"\$b\" ] 2>/dev/null || continue; " +
                         "echo 2048 > \"\$b/read_ahead_kb\" 2>/dev/null || true; " +
