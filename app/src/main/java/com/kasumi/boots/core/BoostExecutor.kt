@@ -329,13 +329,13 @@ class BoostExecutor {
 
     private fun executeCommands(vararg commands: String) {
         try {
-            commands.forEach { cmd ->
-                // Execute and wait for completion
-                val result = Shell.cmd(cmd).exec()
-                // Log errors if any (but continue with || true pattern)
-                if (!result.isSuccess && result.err.isNotEmpty()) {
-                    // Silent fail - expected with || true pattern
-                }
+            if (commands.isEmpty()) return
+            // Batch all commands into a single script to avoid overhead of spawning multiple shell processes
+            val script = commands.joinToString("\n")
+            val result = Shell.cmd(script).exec()
+            // Log errors if any (but continue with || true pattern)
+            if (!result.isSuccess && result.err.isNotEmpty()) {
+                // Silent fail - expected with || true pattern
             }
         } catch (e: Exception) {
             // Silent fail - some commands may not be available on all devices
