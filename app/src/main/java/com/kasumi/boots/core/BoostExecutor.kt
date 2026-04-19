@@ -198,7 +198,7 @@ class BoostExecutor {
                         "[ -d \"\$b\" ] 2>/dev/null || continue; " +
                         "echo 2048 > \"\$b/read_ahead_kb\" 2>/dev/null || true; " +
                         "echo 0 > \"\$b/iostats\" 2>/dev/null || true; " +
-                        "done &"
+                        "done"
             )
 
             log("[6/10] Done")
@@ -330,15 +330,16 @@ class BoostExecutor {
     private fun executeCommands(vararg commands: String) {
         try {
             if (commands.isEmpty()) return
-            // Batch all commands into a single script to avoid overhead of spawning multiple shell processes
-            val script = commands.joinToString("\n")
-            val result = Shell.cmd(script).exec()
-            // Log errors if any (but continue with || true pattern)
-            if (!result.isSuccess && result.err.isNotEmpty()) {
-                // Silent fail - expected with || true pattern
+            // Run commands individually to prevent a single hanging command from permanently blocking the batch's sentinel.
+            // libsu maintains a persistent root shell, so the overhead of multiple exec() calls is just IPC, not process spawning.
+            commands.forEach { cmd ->
+                val result = Shell.cmd(cmd).exec()
+                if (!result.isSuccess && result.err.isNotEmpty()) {
+                    // Silent fail
+                }
             }
         } catch (e: Exception) {
-            // Silent fail - some commands may not be available on all devices
+            // Silent fail
         }
     }
 }
